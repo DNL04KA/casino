@@ -4,7 +4,9 @@ import { SYMBOLS, getSymbol } from '@/data/symbols';
 import { GUARDIAN_MAP } from '@/data/guardians';
 import type { Cell, Grid, GuardianId, LineWin, OrbDrop, SymbolId } from '@/types';
 import {
+  drawLightShaft,
   drawOrb,
+  drawRuneMark,
   drawShockRing,
   drawSoftDot,
   drawSparkle,
@@ -75,6 +77,8 @@ export class TempleScene extends Phaser.Scene {
   private haloLayer!: Phaser.GameObjects.Container;
   private orbLayer!: Phaser.GameObjects.Container;
   private orbs: LiveOrb[] = [];
+  private backdrop!: Phaser.GameObjects.Container;
+  private backdropTinted: Phaser.GameObjects.Image[] = [];
   private reelMask!: Phaser.Display.Masks.GeometryMask;
 
   private emitters: Record<string, Phaser.GameObjects.Particles.ParticleEmitter> = {};
@@ -110,6 +114,7 @@ export class TempleScene extends Phaser.Scene {
 
   create(): void {
     this.buildTextures();
+    this.buildBackdrop();
     this.buildReels();
     this.buildLayers();
     this.buildEmitters();
@@ -167,6 +172,17 @@ export class TempleScene extends Phaser.Scene {
     this.makeCanvasTexture('fx-halo', 240, (ctx) => drawWinHalo(ctx, 240, '#F8C65B'));
     this.makeCanvasTexture('fx-orb', 160, (ctx) => drawOrb(ctx, 160));
     this.makeCanvasTexture('fx-ring', 256, (ctx) => drawShockRing(ctx, 256));
+    for (let variant = 0; variant < 4; variant += 1) {
+      this.makeCanvasTexture(`fx-rune-${variant}`, 96, (ctx) => drawRuneMark(ctx, 96, variant));
+    }
+    if (!this.textures.exists('fx-shaft')) {
+      const shaft = this.textures.createCanvas('fx-shaft', 160, 640);
+      const shaftCtx = shaft?.getContext();
+      if (shaft && shaftCtx) {
+        drawLightShaft(shaftCtx, 160, 640);
+        shaft.refresh();
+      }
+    }
   }
 
   private buildReels(): void {
@@ -202,6 +218,86 @@ export class TempleScene extends Phaser.Scene {
         glow: null,
       });
     }
+  }
+
+  /**
+   * Atmosphere *behind* the symbols: a breathing pool of light, two slow
+   * shafts and a drift of faint runes. Without it the board is flat black
+   * between the symbols, which is what makes a reel set look unfinished.
+   */
+  private buildBackdrop(): void {
+    this.backdrop = this.add.container(0, 0).setDepth(0);
+
+    const pool = this.add
+      .image(ORIGIN_X + GRID_WIDTH / 2, ORIGIN_Y + GRID_HEIGHT / 2, 'fx-dot')
+      .setScale(26, 15)
+      .setAlpha(0.16)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    this.backdrop.add(pool);
+    this.backdropTinted.push(pool);
+    this.tweens.add({
+      targets: pool,
+      alpha: { from: 0.1, to: 0.22 },
+      duration: 4200,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+
+    for (let i = 0; i < 2; i += 1) {
+      const shaft = this.add
+        .image(ORIGIN_X + GRID_WIDTH * (0.3 + i * 0.42), ORIGIN_Y + GRID_HEIGHT / 2, 'fx-shaft')
+        .setAlpha(0.05)
+        .setAngle(i === 0 ? -14 : 12)
+        .setScale(1.9, GRID_HEIGHT / 560)
+        .setBlendMode(Phaser.BlendModes.ADD);
+      this.backdrop.add(shaft);
+      this.backdropTinted.push(shaft);
+      this.tweens.add({
+        targets: shaft,
+        x: shaft.x + (i === 0 ? 90 : -90),
+        alpha: { from: 0.035, to: 0.085 },
+        duration: 9000 + i * 2600,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
+    }
+
+    for (let i = 0; i < 10; i += 1) {
+      const rune = this.add
+        .image(
+          ORIGIN_X + Math.random() * GRID_WIDTH,
+          ORIGIN_Y + Math.random() * GRID_HEIGHT,
+          `fx-rune-${i % 4}`,
+        )
+        .setAlpha(0.06 + Math.random() * 0.05)
+        .setScale(0.5 + Math.random() * 0.7)
+        .setAngle(Math.random() * 40 - 20)
+        .setBlendMode(Phaser.BlendModes.ADD);
+      this.backdrop.add(rune);
+      this.backdropTinted.push(rune);
+      this.tweens.add({
+        targets: rune,
+        y: rune.y - 60 - Math.random() * 80,
+        alpha: 0,
+        duration: 9000 + Math.random() * 9000,
+        delay: Math.random() * 6000,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+        onRepeat: () => {
+          rune.y = ORIGIN_Y + GRID_HEIGHT + 40;
+          rune.x = ORIGIN_X + Math.random() * GRID_WIDTH;
+          rune.setAlpha(0.06 + Math.random() * 0.05);
+        },
+      });
+    }
+
+    this.applyBackdropTint();
+  }
+
+  private applyBackdropTint(): void {
+    this.backdropTinted.forEach((item) => item.setTint(this.themeColor));
   }
 
   private buildLayers(): void {
@@ -1053,6 +1149,7 @@ export class TempleScene extends Phaser.Scene {
     const color = guardian ? GUARDIAN_MAP[guardian].colors.primary : '#25D9FF';
     this.themeColor = Phaser.Display.Color.HexStringToColor(color).color;
     this.dust?.setParticleTint(guardian ? this.themeColor : [0xf8c65b, 0x25d9ff, 0x8a4dff]);
+    this.applyBackdropTint();
   }
 }
 

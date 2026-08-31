@@ -48,23 +48,25 @@ export function drawSymbolTile(
   ctx.fillStyle = bloom;
   ctx.fillRect(0, 0, size, size);
 
-  // A hint of the symbol's own colour pooled behind it deepens the reel
+  // A whisper of the symbol's own shade seats it on the reel. Kept faint and
+  // tight: at this tile size a stronger pool overlaps its neighbours and
+  // quilts the whole board with dark patches.
   const pool = ctx.createRadialGradient(
     size * 0.5,
-    size * 0.55,
-    size * 0.04,
+    size * 0.54,
+    size * 0.02,
     size * 0.5,
-    size * 0.55,
-    size * 0.46,
+    size * 0.54,
+    size * 0.34,
   );
-  pool.addColorStop(0, hexToRgba(palette.shade, 0.55 * intensity));
+  pool.addColorStop(0, hexToRgba(palette.shade, 0.2 * intensity));
   pool.addColorStop(1, hexToRgba(palette.shade, 0));
   ctx.fillStyle = pool;
   ctx.fillRect(0, 0, size, size);
 
   // Contact shadow
   ctx.save();
-  ctx.globalAlpha = 0.5;
+  ctx.globalAlpha = 0.34;
   const shade = ctx.createRadialGradient(
     size * 0.5,
     size * 0.88,
@@ -178,6 +180,72 @@ export function drawOrb(ctx: Ctx2D, size: number): void {
   ctx.ellipse(c - size * 0.11, c - size * 0.15, size * 0.09, size * 0.055, -0.5, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(255,255,255,0.85)';
   ctx.fill();
+}
+
+/** A faint temple rune, drifting behind the reels to give the board depth. */
+export function drawRuneMark(ctx: Ctx2D, size: number, variant: number): void {
+  ctx.clearRect(0, 0, size, size);
+  const u = size / 100;
+  ctx.save();
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 7 * u;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  switch (variant % 4) {
+    case 0:
+      ctx.moveTo(50 * u, 12 * u);
+      ctx.lineTo(50 * u, 88 * u);
+      ctx.moveTo(50 * u, 34 * u);
+      ctx.lineTo(24 * u, 16 * u);
+      ctx.moveTo(50 * u, 54 * u);
+      ctx.lineTo(78 * u, 32 * u);
+      break;
+    case 1:
+      ctx.moveTo(24 * u, 14 * u);
+      ctx.lineTo(24 * u, 86 * u);
+      ctx.lineTo(66 * u, 86 * u);
+      ctx.moveTo(24 * u, 48 * u);
+      ctx.lineTo(60 * u, 48 * u);
+      break;
+    case 2:
+      ctx.moveTo(26 * u, 86 * u);
+      ctx.lineTo(50 * u, 14 * u);
+      ctx.lineTo(74 * u, 86 * u);
+      ctx.moveTo(34 * u, 62 * u);
+      ctx.lineTo(66 * u, 62 * u);
+      break;
+    default:
+      ctx.moveTo(30 * u, 16 * u);
+      ctx.lineTo(70 * u, 50 * u);
+      ctx.lineTo(30 * u, 84 * u);
+      ctx.moveTo(70 * u, 16 * u);
+      ctx.lineTo(70 * u, 84 * u);
+      break;
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** A soft diagonal shaft of light that sweeps behind the board. */
+export function drawLightShaft(ctx: Ctx2D, width: number, height: number): void {
+  ctx.clearRect(0, 0, width, height);
+  const g = ctx.createLinearGradient(0, 0, width, 0);
+  g.addColorStop(0, 'rgba(255,255,255,0)');
+  g.addColorStop(0.45, 'rgba(255,255,255,0.55)');
+  g.addColorStop(0.55, 'rgba(255,255,255,0.75)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, width, height);
+  // Fade the ends so the shaft has no hard cut-off.
+  const fade = ctx.createLinearGradient(0, 0, 0, height);
+  fade.addColorStop(0, 'rgba(0,0,0,1)');
+  fade.addColorStop(0.5, 'rgba(0,0,0,0)');
+  fade.addColorStop(1, 'rgba(0,0,0,1)');
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.fillStyle = fade;
+  ctx.fillRect(0, 0, width, height);
+  ctx.globalCompositeOperation = 'source-over';
 }
 
 /** Expanding shockwave ring thrown off by a winning symbol. */
