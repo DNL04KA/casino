@@ -81,6 +81,8 @@ export class TempleScene extends Phaser.Scene {
   private backdropTinted: Phaser.GameObjects.Image[] = [];
   /** Backdrop pieces that only the top tier can afford. */
   private backdropExtras: Phaser.GameObjects.Image[] = [];
+  /** The arrival effect is the signature look, but the lowest tier drops it. */
+  private materialiseEnabled = true;
   private reelMask!: Phaser.Display.Masks.GeometryMask;
 
   private emitters: Record<string, Phaser.GameObjects.Particles.ParticleEmitter> = {};
@@ -307,6 +309,7 @@ export class TempleScene extends Phaser.Scene {
   private applyQuality(tier: 'high' | 'balanced' | 'saver'): void {
     const extras = tier === 'high';
     this.backdropExtras.forEach((item) => item.setVisible(extras));
+    this.materialiseEnabled = tier !== 'saver';
     if (this.dust) {
       if (tier === 'saver') this.dust.stop();
       else {
@@ -487,6 +490,68 @@ export class TempleScene extends Phaser.Scene {
     ];
   }
 
+  /**
+   * The signature beat: when a symbol arrives it is not simply *there* — a
+   * swarm of sparks converges on the cell and the symbol flares into being.
+   *
+   * This is deliberately something painted sprite art cannot do. Every landing
+   * is generated fresh, so no two are identical, and it costs a handful of
+   * additive quads.
+   */
+  private materialise(reel: number, row: number, delay: number, strength = 1): void {
+    if (!this.materialiseEnabled) return;
+    const x = cellX(reel);
+    const y = cellY(row);
+    const id = (this.reels[reel] as ReelRuntime).symbols[row + 1] as SymbolId;
+    const tint = Phaser.Display.Color.HexStringToColor(getSymbol(id).palette.glow).color;
+    const points = Math.round(9 * strength);
+
+    for (let i = 0; i < points; i += 1) {
+      const angle = (i / points) * Math.PI * 2 + Math.random() * 0.9;
+      const distance = 80 + Math.random() * 70;
+      const spark = this.add
+        .image(x + Math.cos(angle) * distance, y + Math.sin(angle) * distance, 'fx-dot')
+        .setTint(tint)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setScale(0.16 + Math.random() * 0.2)
+        .setAlpha(0)
+        .setDepth(9);
+      this.effects.push(spark);
+      this.tweens.add({
+        targets: spark,
+        x,
+        y,
+        alpha: { from: 0.95, to: 0 },
+        scale: 0.05,
+        duration: 260 + Math.random() * 120,
+        delay: delay + i * 9,
+        ease: 'Cubic.easeIn',
+        onComplete: () => spark.destroy(),
+      });
+    }
+
+    // The arrival flash the sparks resolve into.
+    this.time.delayedCall(delay + 300, () => {
+      if (!this.alive) return;
+      const flare = this.add
+        .image(x, y, 'fx-dot')
+        .setTint(tint)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setScale(0.5)
+        .setAlpha(0.9)
+        .setDepth(9);
+      this.effects.push(flare);
+      this.tweens.add({
+        targets: flare,
+        scale: 2.4,
+        alpha: 0,
+        duration: 320,
+        ease: 'Quad.easeOut',
+        onComplete: () => flare.destroy(),
+      });
+    });
+  }
+
   private landReel(reel: ReelRuntime): void {
     reel.mode = 'land';
     reel.speed = 0;
@@ -509,6 +574,10 @@ export class TempleScene extends Phaser.Scene {
         reel.bounce = 0;
       },
     });
+
+    for (let row = 0; row < GRID_ROWS; row += 1) {
+      this.materialise(reel.index, row, row * 45);
+    }
 
     gameBus.emit('reels:stopped', { reel: reel.index });
 
@@ -998,6 +1067,12 @@ export class TempleScene extends Phaser.Scene {
       this.time.delayedCall(fall + (turbo ? 60 : 140), () => {
         temporaries.forEach((sprite) => sprite.destroy());
         this.setGrid(next);
+        // Refilled cells announce themselves the same way a landing does.
+        clearedByReel.forEach((rows, reel) => {
+          for (let row = 0; row < rows.size; row += 1) {
+            this.materialise(reel, row, row * 40, 0.7);
+          }
+        });
         gameBus.emit('tumble:done', {});
       });
     });

@@ -12,6 +12,8 @@ interface GameStageProps {
   excited?: boolean;
   /** The live round read-out replaces the nameplate while a round plays. */
   hideTitle?: boolean;
+  /** Lit rune count on the pillars — the cabinet charges with the chain. */
+  energy?: number;
   onRendererError: (message: string) => void;
   children?: ReactNode;
 }
@@ -39,6 +41,7 @@ export function GameStage({
   mounted,
   excited = false,
   hideTitle = false,
+  energy = 0,
   onRendererError,
   children,
 }: GameStageProps): JSX.Element {
@@ -46,7 +49,7 @@ export function GameStage({
 
   return (
     <main className="relative z-20 flex min-h-[34vh] flex-1 items-center justify-center gap-1 px-2 sm:px-4 xl:gap-4">
-      <RunePillar side="left" guardian={guardian} excited={excited} />
+      <RunePillar side="left" guardian={guardian} excited={excited} energy={energy} />
 
       <div
         className="relative h-auto w-full max-w-[1120px] landscape:h-full landscape:max-h-full landscape:w-auto"
@@ -143,7 +146,7 @@ export function GameStage({
         {children}
       </div>
 
-      <RunePillar side="right" guardian={guardian} excited={excited} />
+      <RunePillar side="right" guardian={guardian} excited={excited} energy={energy} />
     </main>
   );
 }

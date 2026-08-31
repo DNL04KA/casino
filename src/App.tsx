@@ -140,6 +140,7 @@ export default function App(): JSX.Element {
             mounted={inGame || showIntro}
             excited={celebrating || state.progress.collecting || state.progress.tumble > 1}
             hideTitle={roundLive}
+            energy={state.progress.collecting ? 6 : state.progress.tumble}
             onRendererError={setRendererError}
           >
             <RoundBanner progress={state.progress} />

@@ -7,12 +7,22 @@ interface RunePillarProps {
   guardian: GuardianId | null;
   /** Celebrations wake the colossus standing in front of the pillar. */
   excited?: boolean;
+  /**
+   * How many runes are lit. Driven by the tumble chain, so the cabinet itself
+   * charges up as a round keeps paying.
+   */
+  energy?: number;
 }
 
 const RUNES = ['ᛟ', 'ᛉ', 'ᚦ', 'ᛗ', 'ᛊ', 'ᛃ'];
 
 /** Carved stone column flanking the reels, inlaid with slowly pulsing runes. */
-export function RunePillar({ side, guardian, excited = false }: RunePillarProps): JSX.Element {
+export function RunePillar({
+  side,
+  guardian,
+  excited = false,
+  energy = 0,
+}: RunePillarProps): JSX.Element {
   const accent = guardian ? GUARDIAN_MAP[guardian].colors.primary : '#25D9FF';
   const flip = side === 'right' ? 'scaleX(-1)' : undefined;
 
@@ -57,31 +67,42 @@ export function RunePillar({ side, guardian, excited = false }: RunePillarProps)
           <rect key={y} x="10" y={y} width="80" height="10" fill="#1A2340" stroke="#F8C65B" strokeOpacity="0.45" />
         ))}
 
-        {/* Rune sockets */}
-        {RUNES.map((rune, i) => (
-          <g key={rune} style={{ color: accent }}>
-            <circle
-              cx="50"
-              cy={92 + i * 86}
-              r="17"
-              fill="#060B16"
-              stroke={accent}
-              strokeOpacity="0.5"
-              strokeWidth="1.4"
-            />
-            <text
-              x="50"
-              y={92 + i * 86}
-              textAnchor="middle"
-              dominantBaseline="central"
-              fontSize="20"
-              fill={accent}
-              style={{ animation: `runePulse ${4 + i * 0.7}s ease-in-out ${i * 0.4}s infinite` }}
-            >
-              {rune}
-            </text>
-          </g>
-        ))}
+        {/* Rune sockets — they ignite from the base up as the chain grows */}
+        {RUNES.map((rune, i) => {
+          const lit = i < energy;
+          const cy = 92 + (RUNES.length - 1 - i) * 86;
+          return (
+            <g key={rune} style={{ color: accent }}>
+              {lit && <circle cx="50" cy={cy} r="26" fill={accent} opacity="0.22" />}
+              <circle
+                cx="50"
+                cy={cy}
+                r="17"
+                fill={lit ? accent : '#060B16'}
+                fillOpacity={lit ? 0.35 : 1}
+                stroke={accent}
+                strokeOpacity={lit ? 1 : 0.5}
+                strokeWidth={lit ? 2.4 : 1.4}
+              />
+              <text
+                x="50"
+                y={cy}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize="20"
+                fill={lit ? '#FFFFFF' : accent}
+                opacity={lit ? 1 : undefined}
+                style={
+                  lit
+                    ? undefined
+                    : { animation: `runePulse ${4 + i * 0.7}s ease-in-out ${i * 0.4}s infinite` }
+                }
+              >
+                {rune}
+              </text>
+            </g>
+          );
+        })}
       </svg>
 
       {/* Column edge light */}
