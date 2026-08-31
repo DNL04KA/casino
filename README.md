@@ -36,58 +36,44 @@ Requires Node 18+.
 
 ---
 
-## Deploying to Cloudflare Pages
+## Deploying to Cloudflare
 
-The demo is a pure static bundle — no server, no API, no database — so Cloudflare
-Pages serves it as-is. Pick whichever of the three routes suits you.
+The demo is a pure static bundle — no server, no API, no database — so it ships
+as a **Workers Static Assets** project: Cloudflare serves `dist/` directly and
+there is no Worker script at all.
 
-### 1. Connect the repo in the Cloudflare dashboard (simplest)
+### Connected to Git (how this repo deploys)
 
-In **Workers & Pages → Create → Pages → Connect to Git**, pick
-`DNL04KA/casino` and use:
+The repository is connected to Cloudflare, so every push to `main` is built and
+published automatically. The project settings are:
 
 | Setting | Value |
 | --- | --- |
-| Framework preset | None (or Vite) |
 | Build command | `npm run build` |
-| Build output directory | `dist` |
+| Deploy command | `npx wrangler deploy` |
 | Node version | 22 or newer |
 
-Every push to `main` then rebuilds and publishes automatically, and pull requests
-get their own preview URLs.
+`wrangler.toml` supplies everything else — the Worker name and the assets
+directory. Pull requests get their own preview URLs.
 
-### 2. GitHub Actions
+> The Worker name in `wrangler.toml` must match the project Cloudflare created.
+> If your project is not called `casino`, change `name` to match, otherwise the
+> deploy will create a second Worker alongside it.
 
-`.github/workflows/deploy.yml` builds on every push and pull request. It also
-publishes to Pages, but **only** when the repository has a
-`CLOUDFLARE_API_TOKEN` secret — without it the workflow still type-checks and
-builds, it just skips the deploy step. To turn deploys on, add these repository
-secrets:
-
-* `CLOUDFLARE_API_TOKEN` — an API token with the **Cloudflare Pages: Edit** permission
-* `CLOUDFLARE_ACCOUNT_ID` — your account ID
-
-Do not use this route *and* route 1 at the same time, or the same project gets
-published twice per push.
-
-### 3. Straight from your machine
+### From your machine
 
 ```bash
 npm run cf:login
 ```
 
 ```bash
-npm run cf:create
-```
-
-```bash
 npm run deploy
 ```
 
-The first two are one-time; after that `npm run deploy` type-checks, builds and
-uploads `dist/`, printing the live URL — something like
-`https://neon-temple.pages.dev`. `npm run deploy:preview` publishes to a preview
-branch with its own URL and leaves production alone, and `npm run cf:whoami`
+`cf:login` is one-time. After that `npm run deploy` type-checks, builds and
+uploads, printing the live URL. `npm run deploy:version` uploads a preview
+version with its own URL without touching production, and `npm run deploy:dry`
+validates the bundle and config without uploading anything. `npm run cf:whoami`
 reports which account wrangler is signed in as.
 
 ### What ships with the build
@@ -95,8 +81,7 @@ reports which account wrangler is signed in as.
 | File | Purpose |
 | --- | --- |
 | `public/_headers` | Immutable caching for hashed assets, always-revalidate for the shell, plus `nosniff`, `Referrer-Policy` and a locked-down `Permissions-Policy` |
-| `public/_redirects` | Deep links fall back to the shell instead of 404 |
-| `wrangler.toml` | Names the Pages project and points it at `dist` |
+| `wrangler.toml` | Worker name, assets directory, and SPA fallback for unknown paths |
 
 `X-Frame-Options` is deliberately **not** set so the demo can be embedded in an
 iframe on a portfolio site. Add it to `public/_headers` if you would rather it

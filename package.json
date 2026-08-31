@@ -11,9 +11,9 @@
     "typecheck": "tsc --noEmit",
     "cf:login": "wrangler login",
     "cf:whoami": "wrangler whoami",
-    "cf:create": "wrangler pages project create neon-temple --production-branch main",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name neon-temple --branch main",
-    "deploy:preview": "npm run build && wrangler pages deploy dist --project-name neon-temple --branch preview"
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:dry": "npm run build && wrangler deploy --dry-run",
+    "deploy:version": "npm run build && wrangler versions upload"
   },
   "dependencies": {
     "framer-motion": "^11.3.31",
