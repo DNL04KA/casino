@@ -51,7 +51,7 @@ In **Workers & Pages → Create → Pages → Connect to Git**, pick
 | Framework preset | None (or Vite) |
 | Build command | `npm run build` |
 | Build output directory | `dist` |
-| Node version | 20 or newer |
+| Node version | 22 or newer |
 
 Every push to `main` then rebuilds and publishes automatically, and pull requests
 get their own preview URLs.
