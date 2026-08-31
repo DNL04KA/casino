@@ -8,6 +8,12 @@ export interface TileOptions {
   intensity?: number;
   /** When false the canvas is not cleared first (used to stack blur passes). */
   clear?: boolean;
+  /**
+   * Draws the object alone — no bloom, no pooled shade, no contact shadow.
+   * The silhouette is then the object itself, which is what the contour pass
+   * needs to trace.
+   */
+  glyphOnly?: boolean;
 }
 
 /**
@@ -26,12 +32,21 @@ export function drawSymbolTile(
   size: number,
   options: TileOptions = {},
 ): void {
-  const { intensity = 1, clear = true } = options;
+  const { intensity = 1, clear = true, glyphOnly = false } = options;
   const def = getSymbol(id);
   const { palette } = def;
 
   ctx.save();
   if (clear) ctx.clearRect(0, 0, size, size);
+
+  if (glyphOnly) {
+    const bare = (size * 0.96) / 100;
+    ctx.translate(size / 2 - 50 * bare, size / 2 - 50 * bare);
+    ctx.scale(bare, bare);
+    GLYPHS[id](ctx, palette);
+    ctx.restore();
+    return;
+  }
 
   // Coloured bloom behind the object
   const bloom = ctx.createRadialGradient(
@@ -96,6 +111,50 @@ export function drawSymbolTile(
   ctx.restore();
 
   ctx.restore();
+}
+
+/**
+ * Traces a luminous contour around whatever is already on `source`.
+ *
+ * Built by stamping the silhouette around a small circle, flattening it to
+ * solid white and punching the original back out — so it follows the real edge
+ * of the artwork rather than any hand-authored path, and works for every
+ * symbol automatically. Phaser tints it per symbol.
+ */
+export function drawContour(
+  ctx: Ctx2D,
+  source: CanvasImageSource,
+  size: number,
+  thickness = 5,
+): void {
+  ctx.clearRect(0, 0, size, size);
+  ctx.save();
+  for (let i = 0; i < 16; i += 1) {
+    const angle = (i / 16) * Math.PI * 2;
+    ctx.drawImage(source, Math.cos(angle) * thickness, Math.sin(angle) * thickness, size, size);
+  }
+  ctx.globalCompositeOperation = 'source-in';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, size, size);
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.drawImage(source, 0, 0, size, size);
+  ctx.restore();
+}
+
+/**
+ * Vertical smear for reels at speed, built by blitting the finished symbol a
+ * few times rather than re-running the artwork through a canvas blur filter.
+ * The filter was 81% of the stage's boot cost and is punishing on mobile
+ * Safari; stacked offset copies read the same in motion.
+ */
+export function drawMotionSmear(ctx: Ctx2D, source: CanvasImageSource, size: number): void {
+  ctx.clearRect(0, 0, size, size);
+  const offsets = [-0.09, -0.045, 0, 0.045, 0.09];
+  for (const offset of offsets) {
+    ctx.globalAlpha = offset === 0 ? 0.72 : 0.26;
+    ctx.drawImage(source, 0, offset * size, size, size);
+  }
+  ctx.globalAlpha = 1;
 }
 
 /** Soft radial sprite used for sparks, dust and win glows. */

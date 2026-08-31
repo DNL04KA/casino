@@ -4,7 +4,9 @@ import { SYMBOLS, getSymbol } from '@/data/symbols';
 import { GUARDIAN_MAP } from '@/data/guardians';
 import type { Cell, Grid, GuardianId, LineWin, OrbDrop, SymbolId } from '@/types';
 import {
+  drawContour,
   drawLightShaft,
+  drawMotionSmear,
   drawOrb,
   drawRuneMark,
   drawShockRing,
@@ -52,6 +54,10 @@ const FILLERS: SymbolId[] = ['dragon', 'mask', 'empress', 'tiger', 'ace', 'king'
 
 const texKey = (id: SymbolId) => `sym-${id}`;
 const blurKey = (id: SymbolId) => `symblur-${id}`;
+const contourKey = (id: SymbolId) => `symline-${id}`;
+
+/** Blur variants are only ever seen in motion, so half resolution is plenty. */
+const SMEAR_TEXTURE_SIZE = TILE_TEXTURE_SIZE / 2;
 
 interface LiveOrb {
   id: string;
@@ -118,6 +124,7 @@ export class TempleScene extends Phaser.Scene {
 
   create(): void {
     this.buildTextures();
+    this.buildDeferredTextures();
     this.buildBackdrop();
     this.buildReels();
     this.buildLayers();
@@ -152,23 +159,6 @@ export class TempleScene extends Phaser.Scene {
       this.makeCanvasTexture(texKey(def.id), TILE_TEXTURE_SIZE, (ctx) => {
         drawSymbolTile(ctx, def.id, TILE_TEXTURE_SIZE);
       });
-
-      // Motion-blur variant, swapped in while the reel is at speed.
-      this.makeCanvasTexture(blurKey(def.id), TILE_TEXTURE_SIZE, (ctx) => {
-        const supportsFilter = 'filter' in ctx;
-        if (supportsFilter) {
-          ctx.save();
-          ctx.filter = 'blur(6px)';
-        }
-        for (let i = -2; i <= 2; i += 1) {
-          ctx.save();
-          ctx.globalAlpha = i === 0 ? 0.75 : 0.22;
-          ctx.translate(0, i * 7);
-          drawSymbolTile(ctx, def.id, TILE_TEXTURE_SIZE, { clear: false });
-          ctx.restore();
-        }
-        if (supportsFilter) ctx.restore();
-      });
     }
 
     this.makeCanvasTexture('fx-dot', 64, (ctx) => drawSoftDot(ctx, 64));
@@ -187,6 +177,40 @@ export class TempleScene extends Phaser.Scene {
         shaft.refresh();
       }
     }
+  }
+
+  /**
+   * Everything the first frame does not need, generated one symbol per tick
+   * after the board is already on screen.
+   *
+   * These used to be built synchronously during boot and cost 139ms of a
+   * blocked main thread on a desktop — several times that on a phone, right at
+   * the moment the demo is being judged. Nothing here is referenced until the
+   * reels first move, so the wait is free.
+   */
+  private buildDeferredTextures(): void {
+    SYMBOLS.forEach((def, index) => {
+      this.time.delayedCall(index * 16, () => {
+        if (!this.alive) return;
+        const source = this.textures.get(texKey(def.id))?.getSourceImage();
+        if (!source) return;
+
+        this.makeCanvasTexture(blurKey(def.id), SMEAR_TEXTURE_SIZE, (ctx) => {
+          drawMotionSmear(ctx, source as CanvasImageSource, SMEAR_TEXTURE_SIZE);
+        });
+
+        // The contour needs the object alone, without the tile's bloom.
+        this.makeCanvasTexture(contourKey(def.id), TILE_TEXTURE_SIZE, (ctx) => {
+          const bare = document.createElement('canvas');
+          bare.width = TILE_TEXTURE_SIZE;
+          bare.height = TILE_TEXTURE_SIZE;
+          const bareCtx = bare.getContext('2d');
+          if (!bareCtx) return;
+          drawSymbolTile(bareCtx, def.id, TILE_TEXTURE_SIZE, { glyphOnly: true });
+          drawContour(ctx, bare, TILE_TEXTURE_SIZE, 5);
+        });
+      });
+    });
   }
 
   private buildReels(): void {
@@ -435,9 +459,13 @@ export class TempleScene extends Phaser.Scene {
   private paintReel(reel: ReelRuntime, blurred: boolean): void {
     for (let slot = 0; slot < REEL_SLOTS; slot += 1) {
       const id = reel.symbols[slot] as SymbolId;
-      const key = blurred ? blurKey(id) : texKey(id);
+      // The smear may still be building on the first spin — fall back cleanly.
+      const wantsSmear = blurred && this.textures.exists(blurKey(id));
+      const key = wantsSmear ? blurKey(id) : texKey(id);
       const sprite = reel.sprites[slot] as Phaser.GameObjects.Image;
       if (sprite.texture.key !== key) sprite.setTexture(key);
+      // Half-resolution smear needs twice the scale to cover the same cell.
+      sprite.setData('smear', wantsSmear);
     }
   }
 
@@ -530,9 +558,11 @@ export class TempleScene extends Phaser.Scene {
       });
     }
 
-    // The arrival flash the sparks resolve into.
+    // The sparks resolve into the object's own contour, etched in light, which
+    // then cools into the solid symbol.
     this.time.delayedCall(delay + 300, () => {
       if (!this.alive) return;
+
       const flare = this.add
         .image(x, y, 'fx-dot')
         .setTint(tint)
@@ -548,6 +578,24 @@ export class TempleScene extends Phaser.Scene {
         duration: 320,
         ease: 'Quad.easeOut',
         onComplete: () => flare.destroy(),
+      });
+
+      if (!this.textures.exists(contourKey(id))) return;
+      const line = this.add
+        .image(x, y, contourKey(id))
+        .setTint(tint)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setScale(this.tileScale * 1.12)
+        .setAlpha(0)
+        .setDepth(10);
+      this.effects.push(line);
+      this.tweens.add({
+        targets: line,
+        alpha: { from: 1, to: 0 },
+        scale: this.tileScale,
+        duration: 420,
+        ease: 'Cubic.easeOut',
+        onComplete: () => line.destroy(),
       });
     });
   }
@@ -669,7 +717,8 @@ export class TempleScene extends Phaser.Scene {
       const sprite = reel.sprites[slot] as Phaser.GameObjects.Image;
       sprite.y = ORIGIN_Y + (slot - 1) * CELL_HEIGHT + CELL_HEIGHT / 2 + reel.offset;
       const stretch = 1 + Math.min(0.16, reel.speed * 0.045);
-      sprite.setScale(this.tileScale, this.tileScale * stretch);
+      const base = sprite.getData('smear') ? this.tileScale * 2 : this.tileScale;
+      sprite.setScale(base, base * stretch);
     }
   }
 
@@ -756,6 +805,28 @@ export class TempleScene extends Phaser.Scene {
         delay: order * 45,
         ease: 'Quad.easeOut',
       });
+
+      // A traced contour that keeps breathing for as long as the win shows.
+      if (this.textures.exists(contourKey(this.reels[reel].symbols[row + 1] as SymbolId))) {
+        const outline = this.add
+          .image(x, y, contourKey((this.reels[reel] as ReelRuntime).symbols[row + 1] as SymbolId))
+          .setTint(0xffffff)
+          .setBlendMode(Phaser.BlendModes.ADD)
+          .setScale(this.tileScale)
+          .setAlpha(0)
+          .setDepth(12);
+        this.halos.push(outline);
+        this.tweens.add({
+          targets: outline,
+          alpha: { from: 0.95, to: 0.35 },
+          scale: { from: this.tileScale * 1.06, to: this.tileScale * 1.13 },
+          duration: 520,
+          delay: order * 45,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut',
+        });
+      }
 
       // Shockwave ring.
       const ring = this.add
