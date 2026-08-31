@@ -1,10 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useMemo } from 'react';
+import { useEffect, useRef } from 'react';
+import { ParticleCanvas } from '@/components/common/ParticleCanvas';
 import { useCountUp } from '@/hooks/useCountUp';
 import { soundEngine } from '@/audio/SoundEngine';
 import type { WinTier } from '@/types';
 import { formatCredits } from '@/utils/format';
-import { TIER_LABEL } from '@/utils/spinEngine';
+import { TIER_LABEL, tierFor } from '@/utils/spinEngine';
 
 interface BigWinOverlayProps {
   visible: boolean;
@@ -17,13 +18,34 @@ interface BigWinOverlayProps {
   tumbles?: number;
 }
 
-const TIER_STYLE: Record<string, { from: string; to: string; ray: string }> = {
-  big: { from: '#FFE9AE', to: '#F8C65B', ray: 'rgba(248,198,91,0.5)' },
-  mega: { from: '#FFE9AE', to: '#8A4DFF', ray: 'rgba(138,77,255,0.55)' },
-  epic: { from: '#FFFFFF', to: '#FF4D6D', ray: 'rgba(255,77,109,0.55)' },
+const TIER_STYLE: Record<string, { from: string; to: string; ray: string; shower: string[] }> = {
+  big: {
+    from: '#FFF8E2',
+    to: '#F8C65B',
+    ray: 'rgba(248,198,91,0.5)',
+    shower: ['#F8C65B', '#FFE9AE'],
+  },
+  mega: {
+    from: '#FFFFFF',
+    to: '#8A4DFF',
+    ray: 'rgba(138,77,255,0.55)',
+    shower: ['#F8C65B', '#8A4DFF', '#25D9FF'],
+  },
+  epic: {
+    from: '#FFFFFF',
+    to: '#FF4D6D',
+    ray: 'rgba(255,77,109,0.55)',
+    shower: ['#F8C65B', '#FF4D6D', '#25D9FF', '#28D6A0'],
+  },
 };
 
-/** Celebration layer for Big / Mega / Epic demo wins. */
+/**
+ * Celebration layer for Big / Mega / Epic demo wins.
+ *
+ * The counter drives the headline: as the number climbs past each threshold the
+ * title upgrades under it, so a huge win *escalates* on screen instead of
+ * announcing its size up front.
+ */
 export function BigWinOverlay({
   visible,
   tier,
@@ -33,25 +55,27 @@ export function BigWinOverlay({
   orbMultiplier = 0,
   tumbles = 0,
 }: BigWinOverlayProps): JSX.Element {
-  const style = TIER_STYLE[tier] ?? TIER_STYLE.big!;
   const counted = useCountUp(visible ? amount : 0, {
     duration,
     onTick: (step) => visible && soundEngine.tick(step),
   });
 
-  const confetti = useMemo(
-    () =>
-      Array.from({ length: 90 }, (_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        delay: Math.random() * 1.2,
-        duration: 2.2 + Math.random() * 2.4,
-        rotate: Math.random() * 720 - 360,
-        size: 5 + Math.random() * 10,
-        color: ['#F8C65B', '#FFE9AE', '#25D9FF', '#8A4DFF', '#28D6A0'][i % 5] as string,
-      })),
-    [],
-  );
+  // Tier of the number *currently on screen*, so the headline escalates.
+  const liveTier = visible ? tierFor(Math.max(counted, 1), bet) : tier;
+  const shown: WinTier = liveTier === 'none' || liveTier === 'small' || liveTier === 'nice' ? 'big' : liveTier;
+  const style = TIER_STYLE[shown] ?? TIER_STYLE.big!;
+
+  const lastTier = useRef<WinTier | null>(null);
+  useEffect(() => {
+    if (!visible) {
+      lastTier.current = null;
+      return;
+    }
+    if (lastTier.current !== null && lastTier.current !== shown) {
+      soundEngine.tierUp();
+    }
+    lastTier.current = shown;
+  }, [shown, visible]);
 
   const multiple = bet > 0 ? amount / bet : 0;
 
@@ -67,7 +91,7 @@ export function BigWinOverlay({
           role="status"
           aria-live="polite"
         >
-          <div className="absolute inset-0 bg-night-900/72 backdrop-blur-[3px]" />
+          <div className="absolute inset-0 bg-night-900/72" />
 
           {/* Rotating god-rays */}
           <div
@@ -77,28 +101,23 @@ export function BigWinOverlay({
               animation: 'portalSpin 18s linear infinite',
               maskImage: 'radial-gradient(circle, #000 0%, transparent 62%)',
               WebkitMaskImage: 'radial-gradient(circle, #000 0%, transparent 62%)',
+              willChange: 'transform',
             }}
           />
 
-          {/* Confetti */}
-          <div className="absolute inset-0">
-            {confetti.map((piece) => (
-              <motion.span
-                key={piece.id}
-                className="absolute top-[-6%] block rounded-[2px]"
-                style={{
-                  left: `${piece.x}%`,
-                  width: piece.size,
-                  height: piece.size * 0.45,
-                  background: piece.color,
-                  boxShadow: `0 0 8px ${piece.color}`,
-                }}
-                initial={{ y: '-10vh', opacity: 0, rotate: 0 }}
-                animate={{ y: '112vh', opacity: [0, 1, 1, 0], rotate: piece.rotate }}
-                transition={{ duration: piece.duration, delay: piece.delay, ease: 'linear', repeat: Infinity }}
-              />
-            ))}
-          </div>
+          {/* Light bloom behind the number */}
+          <motion.div
+            className="absolute h-[70vmin] w-[70vmin] rounded-full"
+            style={{
+              background: `radial-gradient(circle, ${style.ray} 0%, transparent 68%)`,
+              willChange: 'transform, opacity',
+            }}
+            animate={{ scale: [0.9, 1.12, 0.9], opacity: [0.5, 0.85, 0.5] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+          />
+
+          {/* Coin and gem shower — one canvas for the whole field */}
+          <ParticleCanvas mode="shower" colors={style.shower} count={shown === 'epic' ? 90 : 64} speed={1.1} />
 
           <motion.div
             className="relative flex flex-col items-center gap-3 px-6 text-center"
@@ -106,20 +125,25 @@ export function BigWinOverlay({
             animate={{ scale: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 16 }}
           >
-            <motion.h2
-              className="font-display text-5xl uppercase tracking-[0.14em] sm:text-7xl"
-              style={{
-                background: `linear-gradient(180deg, ${style.from} 0%, ${style.to} 100%)`,
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                color: 'transparent',
-                filter: 'drop-shadow(0 0 28px rgba(248,198,91,0.6))',
-              }}
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              {TIER_LABEL[tier]}
-            </motion.h2>
+            <AnimatePresence mode="popLayout">
+              <motion.h2
+                key={shown}
+                className="font-display text-5xl uppercase tracking-[0.14em] sm:text-7xl"
+                style={{
+                  background: `linear-gradient(180deg, ${style.from} 0%, ${style.to} 100%)`,
+                  WebkitBackgroundClip: 'text',
+                  backgroundClip: 'text',
+                  color: 'transparent',
+                  filter: 'drop-shadow(0 0 28px rgba(248,198,91,0.6))',
+                }}
+                initial={{ scale: 0.4, opacity: 0, rotate: -6 }}
+                animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                exit={{ scale: 1.6, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 14 }}
+              >
+                {TIER_LABEL[shown]}
+              </motion.h2>
+            </AnimatePresence>
 
             <p className="stat-value text-4xl font-bold text-gold-light sm:text-6xl">
               {formatCredits(counted)}
@@ -147,6 +171,7 @@ export function BigWinOverlay({
                 )}
               </motion.div>
             )}
+
             <p className="max-w-md text-[11px] leading-relaxed text-slate-400">
               Visual celebration only. Demo points hold no monetary value and cannot be exchanged.
             </p>

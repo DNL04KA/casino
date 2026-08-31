@@ -38,7 +38,7 @@ export function BonusIntro({ visible, turbo, onChoose }: BonusIntroProps): JSX.E
           exit={{ opacity: 0 }}
           transition={{ duration: 0.35 }}
         >
-          <div className="absolute inset-0 bg-night-900/92 backdrop-blur-md" />
+          <div className="absolute inset-0 bg-night-900/95" />
 
           {/* Portal core */}
           <motion.div
@@ -147,7 +147,7 @@ export function BonusIntro({ visible, turbo, onChoose }: BonusIntroProps): JSX.E
                       transition={{ delay: 0.1 + index * 0.09 }}
                       whileHover={{ y: -6 }}
                       whileTap={{ scale: 0.97 }}
-                      className="glass-panel gold-hairline group relative flex flex-col items-center gap-3 rounded-3xl px-4 py-5 text-center transition-shadow hover:shadow-neon-gold"
+                      className="glass-flat gold-hairline group relative flex flex-col items-center gap-3 rounded-3xl px-4 py-5 text-center transition-shadow hover:shadow-neon-gold"
                       style={{ borderColor: `${guardian.colors.primary}55` }}
                       aria-label={`Choose ${guardian.title} — ${guardian.feature}`}
                     >

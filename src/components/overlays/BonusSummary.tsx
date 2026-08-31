@@ -45,7 +45,7 @@ export function BonusSummary({
           aria-modal="true"
           aria-label={title}
         >
-          <div className="absolute inset-0 bg-night-900/93 backdrop-blur-md" />
+          <div className="absolute inset-0 bg-night-900/95" />
           <div
             className="absolute h-[140vmin] w-[140vmin] opacity-45"
             style={{

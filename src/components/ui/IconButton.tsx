@@ -36,7 +36,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       }}
       className={cn(
         'group inline-flex h-10 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-medium transition-all duration-200',
-        'border-white/12 bg-white/[0.06] text-slate-200 backdrop-blur',
+        'border-white/12 bg-white/[0.07] text-slate-200',
         'active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40',
         TONES[tone],
         active && 'border-gold/70 bg-gold/15 text-gold-light shadow-neon-gold',

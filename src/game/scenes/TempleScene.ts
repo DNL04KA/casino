@@ -3,7 +3,14 @@ import { GRID_COLUMNS, GRID_ROWS, TIMING } from '@/data/config';
 import { SYMBOLS, getSymbol } from '@/data/symbols';
 import { GUARDIAN_MAP } from '@/data/guardians';
 import type { Cell, Grid, GuardianId, LineWin, OrbDrop, SymbolId } from '@/types';
-import { drawOrb, drawSoftDot, drawSparkle, drawSymbolTile, drawWinHalo } from '@/game/art/drawSymbol';
+import {
+  drawOrb,
+  drawShockRing,
+  drawSoftDot,
+  drawSparkle,
+  drawSymbolTile,
+  drawWinHalo,
+} from '@/game/art/drawSymbol';
 import { gameBus, type GameEvents } from '@/game/bus';
 import {
   CELL_HEIGHT,
@@ -79,6 +86,8 @@ export class TempleScene extends Phaser.Scene {
   private activeColor = 0xf8c65b;
   private winTimer?: Phaser.Time.TimerEvent;
   private halos: Phaser.GameObjects.Image[] = [];
+  /** One-shot flashes and rings, cleared with the rest of the win layer. */
+  private effects: Phaser.GameObjects.Image[] = [];
 
   private stoppedCount = 0;
   private spinning = false;
@@ -157,6 +166,7 @@ export class TempleScene extends Phaser.Scene {
     this.makeCanvasTexture('fx-star', 48, (ctx) => drawSparkle(ctx, 48));
     this.makeCanvasTexture('fx-halo', 240, (ctx) => drawWinHalo(ctx, 240, '#F8C65B'));
     this.makeCanvasTexture('fx-orb', 160, (ctx) => drawOrb(ctx, 160));
+    this.makeCanvasTexture('fx-ring', 256, (ctx) => drawShockRing(ctx, 256));
   }
 
   private buildReels(): void {
@@ -522,20 +532,65 @@ export class TempleScene extends Phaser.Scene {
     this.activeCells = win.cells;
 
     // Restore full brightness on the winning cells only.
-    for (const [reel, row] of win.cells) {
+    win.cells.forEach(([reel, row], order) => {
       const sprite = (this.reels[reel] as ReelRuntime).sprites[row + 1] as Phaser.GameObjects.Image;
+      const x = cellX(reel);
+      const y = cellY(row);
       sprite.setAlpha(1);
-      this.tweens.add({
+
+      // Impact: a hard punch that settles into a slow breath.
+      this.tweens.chain({
         targets: sprite,
-        scale: { from: this.tileScale, to: this.tileScale * 1.12 },
-        duration: 260,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut',
+        tweens: [
+          { scale: this.tileScale * 1.3, duration: 150, ease: 'Back.easeOut', delay: order * 45 },
+          {
+            scale: this.tileScale * 1.1,
+            duration: 420,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut',
+          },
+        ],
+      });
+
+      // Silhouette flash, additive, gone in a blink.
+      const flash = this.add
+        .image(x, y, sprite.texture.key)
+        .setScale(this.tileScale)
+        .setTintFill(0xffffff)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setDepth(10)
+        .setAlpha(0);
+      this.effects.push(flash);
+      this.tweens.add({
+        targets: flash,
+        alpha: { from: 0.85, to: 0 },
+        scale: this.tileScale * 1.35,
+        duration: 320,
+        delay: order * 45,
+        ease: 'Quad.easeOut',
+      });
+
+      // Shockwave ring.
+      const ring = this.add
+        .image(x, y, 'fx-ring')
+        .setTint(color)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setDepth(11)
+        .setScale(0.18)
+        .setAlpha(0);
+      this.effects.push(ring);
+      this.tweens.add({
+        targets: ring,
+        scale: 1.05,
+        alpha: { from: 0.9, to: 0 },
+        duration: 560,
+        delay: order * 45,
+        ease: 'Cubic.easeOut',
       });
 
       const halo = this.add
-        .image(cellX(reel), cellY(row), 'fx-halo')
+        .image(x, y, 'fx-halo')
         .setTint(color)
         .setBlendMode(Phaser.BlendModes.ADD)
         .setScale(TILE_DISPLAY_SIZE / 240)
@@ -553,8 +608,8 @@ export class TempleScene extends Phaser.Scene {
       });
 
       this.emitters.gold?.setParticleTint(color);
-      this.emitters.gold?.explode(6, cellX(reel), cellY(row));
-    }
+      this.emitters.gold?.explode(12, x, y);
+    });
 
     // Payline ribbon
     if (win.lineId !== 0) {
@@ -616,6 +671,11 @@ export class TempleScene extends Phaser.Scene {
       halo.destroy();
     });
     this.halos = [];
+    this.effects.forEach((fx) => {
+      this.tweens.killTweensOf(fx);
+      fx.destroy();
+    });
+    this.effects = [];
     for (const reel of this.reels) {
       for (let slot = 1; slot <= GRID_ROWS; slot += 1) {
         const sprite = reel.sprites[slot] as Phaser.GameObjects.Image;

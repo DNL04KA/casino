@@ -3,21 +3,12 @@ import { useMemo } from 'react';
 import type { GuardianId } from '@/types';
 import { GUARDIAN_MAP } from '@/data/guardians';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { ParticleCanvas } from '@/components/common/ParticleCanvas';
 
 interface TempleBackgroundProps {
   /** When a Guardian is active the whole scene shifts to their palette. */
   guardian: GuardianId | null;
   dimmed?: boolean;
-}
-
-interface Ember {
-  left: number;
-  delay: number;
-  duration: number;
-  size: number;
-  drift: number;
-  opacity: number;
-  color: string;
 }
 
 const EMBER_COLORS = ['#F8C65B', '#FFE9AE', '#25D9FF', '#8A4DFF'];
@@ -56,19 +47,6 @@ function StormFlash({ accent }: { accent: string }): JSX.Element {
  */
 export function TempleBackground({ guardian, dimmed = false }: TempleBackgroundProps): JSX.Element {
   const reduceMotion = useReducedMotion();
-
-  const embers = useMemo<Ember[]>(() => {
-    const count = 46;
-    return Array.from({ length: count }, (_, i) => ({
-      left: Math.random() * 100,
-      delay: Math.random() * 16,
-      duration: 14 + Math.random() * 16,
-      size: 1.5 + Math.random() * 3.5,
-      drift: -60 + Math.random() * 120,
-      opacity: 0.35 + Math.random() * 0.5,
-      color: EMBER_COLORS[i % EMBER_COLORS.length] as string,
-    }));
-  }, []);
 
   const stars = useMemo(
     () =>
@@ -131,7 +109,6 @@ export function TempleBackground({ guardian, dimmed = false }: TempleBackgroundP
         className="absolute left-1/2 top-[14%] h-[62%] w-[26vmin] -translate-x-1/2"
         style={{
           background: `radial-gradient(50% 60% at 50% 0%, ${accentSoft} 0%, rgba(37,217,255,0.10) 45%, rgba(37,217,255,0) 100%)`,
-          filter: 'blur(26px)',
           maskImage:
             'radial-gradient(60% 100% at 50% 10%, #000 0%, rgba(0,0,0,0.55) 55%, transparent 100%)',
           WebkitMaskImage:
@@ -139,28 +116,32 @@ export function TempleBackground({ guardian, dimmed = false }: TempleBackgroundP
         }}
       />
 
-      {/* Clouds */}
-      <svg
-        className="absolute inset-x-0 top-[18%] h-[36%] w-full opacity-45"
-        viewBox="0 0 1200 300"
-        preserveAspectRatio="none"
-        style={{ animation: reduceMotion ? undefined : 'drift-clouds 64s ease-in-out infinite alternate' }}
+      {/* Cloud bank — soft radial gradients, so no blur filter is needed */}
+      <div
+        className="absolute inset-x-0 top-[18%] h-[36%] opacity-60"
+        style={{
+          animation: reduceMotion ? undefined : 'drift-clouds 64s ease-in-out infinite alternate',
+          willChange: reduceMotion ? undefined : 'transform',
+        }}
       >
-        <defs>
-          <linearGradient id="cloud" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#5C4B9E" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="#1B1140" stopOpacity="0" />
-          </linearGradient>
-          <filter id="cloudBlur">
-            <feGaussianBlur stdDeviation="22" />
-          </filter>
-        </defs>
-        <g filter="url(#cloudBlur)" fill="url(#cloud)">
-          <ellipse cx="220" cy="150" rx="260" ry="52" />
-          <ellipse cx="640" cy="196" rx="330" ry="46" />
-          <ellipse cx="1020" cy="132" rx="240" ry="56" />
-        </g>
-      </svg>
+        {[
+          { left: '4%', width: '46%', top: '18%', height: '58%', alpha: 0.5 },
+          { left: '38%', width: '54%', top: '42%', height: '52%', alpha: 0.42 },
+          { left: '68%', width: '44%', top: '10%', height: '60%', alpha: 0.46 },
+        ].map((cloud, i) => (
+          <div
+            key={i}
+            className="absolute"
+            style={{
+              left: cloud.left,
+              width: cloud.width,
+              top: cloud.top,
+              height: cloud.height,
+              background: `radial-gradient(closest-side, rgba(92,75,158,${cloud.alpha}) 0%, rgba(60,46,110,${cloud.alpha * 0.5}) 45%, rgba(27,17,64,0) 100%)`,
+            }}
+          />
+        ))}
+      </div>
 
       {/* Cliff + temple silhouette */}
       <svg
@@ -182,20 +163,13 @@ export function TempleBackground({ guardian, dimmed = false }: TempleBackgroundP
             <stop offset="0%" stopColor="#3C2E6B" />
             <stop offset="100%" stopColor="#161033" />
           </linearGradient>
-          <filter id="templeGlow" x="-40%" y="-40%" width="180%" height="180%">
-            <feGaussianBlur stdDeviation="6" result="b" />
-            <feMerge>
-              <feMergeNode in="b" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
         </defs>
 
         {/* Far ridges */}
         <path d="M0 300 L160 236 L300 292 L430 240 L560 300 L700 246 L860 306 L1010 250 L1200 312 L1200 560 L0 560Z" fill="#131C36" opacity="0.75" />
 
         {/* Temple */}
-        <g transform="translate(600 96)" filter="url(#templeGlow)">
+        <g transform="translate(600 96)">
           {/* Tiers */}
           {[0, 1, 2].map((tier) => {
             const width = 240 - tier * 56;
@@ -247,35 +221,15 @@ export function TempleBackground({ guardian, dimmed = false }: TempleBackgroundP
           className="absolute inset-x-[-20%] h-[26vh]"
           style={{
             bottom: `${layer * 9}%`,
-            background: `radial-gradient(60% 100% at 50% 60%, rgba(150,180,255,${0.16 - layer * 0.04}) 0%, rgba(150,180,255,0) 70%)`,
-            filter: 'blur(18px)',
+            background: `radial-gradient(60% 100% at 50% 60%, rgba(150,180,255,${0.18 - layer * 0.045}) 0%, rgba(150,180,255,0) 70%)`,
             animation: reduceMotion ? undefined : `fogDrift ${28 + layer * 11}s ease-in-out ${layer * 3}s infinite alternate`,
+            willChange: reduceMotion ? undefined : 'transform, opacity',
           }}
         />
       ))}
 
-      {/* Embers */}
-      <div className="absolute inset-0">
-        {embers.map((ember, i) => (
-          <span
-            key={i}
-            className="absolute bottom-0 rounded-full"
-            style={{
-              left: `${ember.left}%`,
-              width: ember.size,
-              height: ember.size,
-              background: ember.color,
-              boxShadow: `0 0 ${ember.size * 4}px ${ember.color}`,
-              opacity: 0,
-              ['--ember-drift' as string]: `${ember.drift}px`,
-              ['--ember-opacity' as string]: ember.opacity,
-              animation: reduceMotion
-                ? undefined
-                : `emberRise ${ember.duration}s linear ${ember.delay}s infinite`,
-            }}
-          />
-        ))}
-      </div>
+      {/* Ambient embers — a single canvas rather than one node per mote */}
+      <ParticleCanvas mode="ambient" colors={EMBER_COLORS} count={54} />
 
       {/* Distant storm over the valley */}
       {!reduceMotion && <StormFlash accent={accent} />}

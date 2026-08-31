@@ -45,7 +45,7 @@ export function GameStage({
   const accent = guardian ? GUARDIAN_MAP[guardian].colors.primary : '#25D9FF';
 
   return (
-    <main className="relative z-20 flex min-h-0 flex-1 items-center justify-center gap-1 px-2 sm:px-4 xl:gap-4">
+    <main className="relative z-20 flex min-h-[34vh] flex-1 items-center justify-center gap-1 px-2 sm:px-4 xl:gap-4">
       <RunePillar side="left" guardian={guardian} excited={excited} />
 
       <div

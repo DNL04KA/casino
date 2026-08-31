@@ -46,7 +46,7 @@ function SymbolCard({ symbol, bet }: { symbol: SymbolDef; bet: number }) {
   return (
     <div
       className={cn(
-        'glass-panel gold-hairline flex gap-3 rounded-2xl p-3',
+        'glass-flat gold-hairline flex gap-3 rounded-2xl p-3',
         symbol.kind !== 'high' && symbol.kind !== 'low' && 'sm:col-span-2',
       )}
     >
@@ -82,7 +82,7 @@ function SymbolCard({ symbol, bet }: { symbol: SymbolDef; bet: number }) {
 
 function LineDiagram({ rows, id, name }: { rows: number[]; id: number; name: string }) {
   return (
-    <div className="glass-panel rounded-xl p-2">
+    <div className="glass-flat rounded-xl p-2">
       <div className="flex items-center justify-between px-0.5 pb-1">
         <span className="stat-value text-[10px] text-cyan-neon">#{id}</span>
         <span className="truncate text-[9px] uppercase tracking-[0.14em] text-slate-500">{name}</span>
@@ -129,7 +129,7 @@ export function PaytableModal({ open, onClose, bet }: PaytableModalProps): JSX.E
         {ORB_VALUES.map((value) => (
           <div
             key={value}
-            className="glass-panel flex min-w-[74px] flex-col items-center gap-0.5 rounded-2xl px-3 py-2"
+            className="glass-flat flex min-w-[74px] flex-col items-center gap-0.5 rounded-2xl px-3 py-2"
             style={{ borderColor: `${orbColor(value)}66` }}
           >
             <span

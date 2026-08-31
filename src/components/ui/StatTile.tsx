@@ -21,7 +21,7 @@ export function StatTile({ label, value, hint, accent = 'gold', className, child
   return (
     <div
       className={cn(
-        'glass-panel gold-hairline flex min-w-[128px] flex-col justify-center rounded-2xl px-3 py-2 sm:px-4 sm:py-2.5',
+        'glass-flat gold-hairline flex min-w-[128px] flex-col justify-center rounded-2xl px-3 py-2 sm:px-4 sm:py-2.5',
         className,
       )}
     >

@@ -113,7 +113,7 @@ export function PickRelic({ visible, relic, onPick, onContinue }: PickRelicProps
                       )}
                     >
                       {/* Sealed face */}
-                      <span className="card-face glass-panel gold-hairline absolute inset-0 grid place-items-center rounded-xl">
+                      <span className="card-face glass-flat gold-hairline absolute inset-0 grid place-items-center rounded-xl">
                         <svg viewBox="0 0 64 64" className="h-1/2 w-1/2 text-gold/70" aria-hidden="true">
                           <path
                             d={SEAL_PATHS[card.index % SEAL_PATHS.length]}
@@ -161,7 +161,7 @@ export function PickRelic({ visible, relic, onPick, onContinue }: PickRelicProps
                 <motion.div
                   initial={{ opacity: 0, y: 24 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="glass-panel gold-hairline mx-auto mt-4 flex max-w-xl flex-col items-center gap-1.5 rounded-3xl px-5 py-3 text-center"
+                  className="glass-flat gold-hairline mx-auto mt-4 flex max-w-xl flex-col items-center gap-1.5 rounded-3xl px-5 py-3 text-center"
                 >
                   <p className="text-[10px] uppercase tracking-[0.32em] text-cyan-neon/80">Relic hunt complete</p>
                   <p className="stat-value text-3xl font-bold text-gold-light sm:text-4xl">

@@ -180,6 +180,22 @@ export function drawOrb(ctx: Ctx2D, size: number): void {
   ctx.fill();
 }
 
+/** Expanding shockwave ring thrown off by a winning symbol. */
+export function drawShockRing(ctx: Ctx2D, size: number): void {
+  ctx.clearRect(0, 0, size, size);
+  const c = size / 2;
+  const g = ctx.createRadialGradient(c, c, size * 0.3, c, c, c * 0.98);
+  g.addColorStop(0, 'rgba(255,255,255,0)');
+  g.addColorStop(0.62, 'rgba(255,255,255,0)');
+  g.addColorStop(0.78, 'rgba(255,255,255,0.95)');
+  g.addColorStop(0.9, 'rgba(255,255,255,0.35)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(c, c, c, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 /** Rounded halo used behind winning symbols. */
 export function drawWinHalo(ctx: Ctx2D, size: number, color: string): void {
   ctx.clearRect(0, 0, size, size);

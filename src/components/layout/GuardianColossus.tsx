@@ -50,16 +50,6 @@ export function GuardianColossus({ side, guardian, excited = false }: GuardianCo
             <stop offset="55%" stopColor={theme.primary} stopOpacity="0.14" />
             <stop offset="100%" stopColor={theme.primary} stopOpacity="0" />
           </radialGradient>
-          <filter id={`${uid}-glow`} x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur stdDeviation="5" result="b" />
-            <feMerge>
-              <feMergeNode in="b" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <filter id={`${uid}-soft`} x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur stdDeviation="16" />
-          </filter>
         </defs>
 
         {/* Aura */}
@@ -113,7 +103,8 @@ export function GuardianColossus({ side, guardian, excited = false }: GuardianCo
         <path d="M74 240 L126 240 M72 268 L128 268" stroke="#F8C65B" strokeOpacity="0.45" strokeWidth="2.5" />
 
         {/* Chest sigil */}
-        <g filter={`url(#${uid}-glow)`}>
+        <g>
+          <polygon points="100,214 126,248 100,282 74,248" fill={theme.primary} opacity="0.18" />
           <polygon
             points="100,222 118,248 100,274 82,248"
             fill="none"
@@ -168,12 +159,13 @@ export function GuardianColossus({ side, guardian, excited = false }: GuardianCo
 
         {/* Channelled orb in the raised hand */}
         <motion.g
-          filter={`url(#${uid}-glow)`}
+         
           animate={reduceMotion ? undefined : { scale: excited ? [1, 1.22, 1] : [1, 1.07, 1] }}
           transition={{ duration: excited ? 0.8 : 3.4, repeat: Infinity, ease: 'easeInOut' }}
           style={{ transformOrigin: '176px 116px' }}
         >
-          <circle cx="176" cy="116" r="22" fill={theme.primary} opacity="0.28" />
+          <circle cx="176" cy="116" r="32" fill={theme.primary} opacity="0.14" />
+          <circle cx="176" cy="116" r="22" fill={theme.primary} opacity="0.3" />
           <circle cx="176" cy="116" r="13" fill={theme.primary} />
           <circle cx="172" cy="111" r="4.5" fill="#FFFFFF" opacity="0.9" />
           {[0, 1, 2, 3, 4, 5].map((i) => {
@@ -214,8 +206,9 @@ export function GuardianColossus({ side, guardian, excited = false }: GuardianCo
           stroke="#05080F"
           strokeWidth="2"
         />
-        {/* Visor */}
-        <g filter={`url(#${uid}-glow)`}>
+        {/* Visor — a wide soft copy underneath stands in for a blur filter */}
+        <g>
+          <path d="M74 144 L126 144 L120 168 L80 168 Z" fill={theme.primary} opacity="0.28" />
           <motion.path
             d="M80 150 L120 150 L116 162 L84 162 Z"
             fill={theme.primary}
@@ -235,7 +228,7 @@ export function GuardianColossus({ side, guardian, excited = false }: GuardianCo
         <path d="M126 132 C148 120 158 96 154 72" stroke={`url(#${uid}-gold)`} strokeWidth="7" fill="none" strokeLinecap="round" />
 
         {/* Ground light */}
-        <ellipse cx="100" cy="618" rx="90" ry="16" fill={theme.primary} opacity="0.18" filter={`url(#${uid}-soft)`} />
+        <ellipse cx="100" cy="618" rx="90" ry="16" fill={`url(#${uid}-aura)`} opacity="0.5" />
 
         {/* Channelled energy during celebrations */}
         {excited && (
@@ -248,7 +241,7 @@ export function GuardianColossus({ side, guardian, excited = false }: GuardianCo
                 strokeWidth="2.5"
                 fill="none"
                 strokeLinecap="round"
-                filter={`url(#${uid}-glow)`}
+               
                 initial={{ opacity: 0 }}
                 animate={{ opacity: [0, 1, 0.2, 0.9, 0] }}
                 transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.12 }}

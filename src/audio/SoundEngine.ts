@@ -285,6 +285,16 @@ export class SoundEngine {
     this.tone({ freq: base * 1.5, type: 'sine', duration: 0.32, gain: 0.08, delay: 0.05 });
   }
 
+  /** The headline escalating from BIG to MEGA to EPIC mid count-up. */
+  tierUp(): void {
+    this.tone({ freq: 300, endFreq: 1400, type: 'sawtooth', duration: 0.45, gain: 0.11, filter: { type: 'lowpass', freq: 4200, q: 2 } });
+    this.noise({ duration: 0.5, gain: 0.09, filter: { type: 'bandpass', freq: 700, endFreq: 6000, q: 1 } });
+    [659.25, 987.77, 1318.5].forEach((freq, i) =>
+      this.tone({ freq, type: 'triangle', duration: 0.5, gain: 0.12, delay: 0.4 + i * 0.04 }),
+    );
+    this.tone({ freq: 70, endFreq: 45, type: 'sine', duration: 0.7, gain: 0.2, delay: 0.38 });
+  }
+
   scatterHit(index: number): void {
     this.tone({ freq: 620 + index * 180, endFreq: 1400 + index * 220, type: 'sine', duration: 0.5, gain: 0.16 });
     this.tone({ freq: 310 + index * 90, type: 'triangle', duration: 0.6, gain: 0.09, delay: 0.02 });

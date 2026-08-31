@@ -32,7 +32,7 @@ export function HistoryModal({ open, onClose, history }: HistoryModalProps): JSX
           {history.map((entry) => (
             <li
               key={entry.id}
-              className="glass-panel gold-hairline flex items-center gap-3 rounded-2xl px-3 py-2.5"
+              className="glass-flat gold-hairline flex items-center gap-3 rounded-2xl px-3 py-2.5"
             >
               <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.04]">
                 {entry.topSymbol ? (

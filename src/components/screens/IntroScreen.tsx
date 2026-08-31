@@ -51,7 +51,7 @@ export function IntroScreen({ onEnter, onOpenInfo }: IntroScreenProps): JSX.Elem
           {HIGHLIGHTS.map((item, i) => (
             <motion.div
               key={item.title}
-              className="glass-panel gold-hairline rounded-2xl px-3 py-3 text-center"
+              className="glass-flat gold-hairline rounded-2xl px-3 py-3 text-center"
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 + i * 0.1 }}

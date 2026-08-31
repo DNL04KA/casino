@@ -68,6 +68,21 @@
       0 18px 44px rgba(0, 0, 0, 0.55);
   }
 
+  /*
+   * Same surface as .glass-panel without `backdrop-filter`. Every blurred
+   * surface costs the compositor a backdrop snapshot per frame, so only
+   * top-level floating panels get the real thing — anything nested inside one,
+   * or repeated across a grid, uses this instead. Visually near-identical
+   * because it already sits on a darkened layer.
+   */
+  .glass-flat {
+    background: linear-gradient(160deg, rgba(30, 42, 74, 0.78) 0%, rgba(13, 17, 38, 0.9) 100%);
+    border: 1px solid rgba(248, 198, 91, 0.22);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 12px 30px rgba(0, 0, 0, 0.45);
+  }
+
   .gold-hairline {
     position: relative;
   }
@@ -192,15 +207,14 @@
   }
 }
 
+/* Opacity only — animating `filter` here re-rasterised twelve glyphs a frame. */
 @keyframes runePulse {
   0%,
   100% {
-    opacity: 0.28;
-    filter: drop-shadow(0 0 4px currentColor);
+    opacity: 0.3;
   }
   50% {
     opacity: 1;
-    filter: drop-shadow(0 0 14px currentColor);
   }
 }
 

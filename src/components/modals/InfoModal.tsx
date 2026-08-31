@@ -47,7 +47,7 @@ export function InfoModal({ open, onClose }: InfoModalProps): JSX.Element {
       <Section title="Special symbols">
         <div className="grid gap-3 sm:grid-cols-3">
           {specials.map((symbol) => (
-            <div key={symbol.id} className="glass-panel gold-hairline flex gap-3 rounded-2xl p-3">
+            <div key={symbol.id} className="glass-flat gold-hairline flex gap-3 rounded-2xl p-3">
               <SymbolCanvas id={symbol.id} size={72} />
               <div className="min-w-0">
                 <p className="font-display text-sm text-gold-light">{symbol.name}</p>
@@ -113,7 +113,7 @@ export function InfoModal({ open, onClose }: InfoModalProps): JSX.Element {
           {GUARDIANS.map((guardian) => (
             <div
               key={guardian.id}
-              className="glass-panel gold-hairline flex flex-col items-center gap-2 rounded-2xl p-3 text-center"
+              className="glass-flat gold-hairline flex flex-col items-center gap-2 rounded-2xl p-3 text-center"
               style={{ borderColor: `${guardian.colors.primary}44` }}
             >
               <GuardianEmblem guardian={guardian.id} size={56} />
