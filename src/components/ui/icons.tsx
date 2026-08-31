@@ -86,6 +86,14 @@ export const PlusIcon = () => (
   </svg>
 );
 
+export const GaugeIcon = () => (
+  <svg viewBox="0 0 24 24" width="20" height="20" {...base}>
+    <path d="M4 17a8 8 0 1116 0" />
+    <path d="M12 17l4.2-5.2" />
+    <path d="M4 17h2M18 17h2M12 9V7" />
+  </svg>
+);
+
 export const RefreshIcon = () => (
   <svg viewBox="0 0 24 24" width="20" height="20" {...base}>
     <path d="M20 11a8 8 0 10-1.2 5.4" />

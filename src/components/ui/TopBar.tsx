@@ -3,6 +3,7 @@ import { GameLogo } from '@/components/ui/GameLogo';
 import {
   ExitFullscreenIcon,
   FullscreenIcon,
+  GaugeIcon,
   HistoryIcon,
   InfoIcon,
   SoundOffIcon,
@@ -19,6 +20,8 @@ interface TopBarProps {
   onToggleFullscreen: () => void;
   isFullscreen: boolean;
   fullscreenSupported: boolean;
+  qualityLabel: string;
+  onCycleQuality: () => void;
 }
 
 export function TopBar({
@@ -30,6 +33,8 @@ export function TopBar({
   onToggleFullscreen,
   isFullscreen,
   fullscreenSupported,
+  qualityLabel,
+  onCycleQuality,
 }: TopBarProps): JSX.Element {
   // Icon rail has to survive a 375 px viewport alongside the wordmark.
   const compact = '!h-9 !px-2 sm:!h-10 sm:!px-3';
@@ -62,6 +67,12 @@ export function TopBar({
           label="Demo history"
           tone="violet"
           onClick={onOpenHistory}
+          className={compact}
+        />
+        <IconButton
+          icon={<GaugeIcon />}
+          label={`Graphics: ${qualityLabel} — tap to change`}
+          onClick={onCycleQuality}
           className={compact}
         />
         <IconButton icon={<InfoIcon />} label="Game info" onClick={onOpenInfo} className={compact} />

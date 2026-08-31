@@ -17,6 +17,13 @@ export interface ParticleSpec {
   count: number;
   /** Multiplies every velocity — lets callers slow a scene down. */
   speed?: number;
+  /**
+   * Additive blending looks better but costs real fill rate on mobile GPUs.
+   * Callers on a lower tier turn it off.
+   */
+  additive?: boolean;
+  /** Upper bound on the backing-store ratio. */
+  maxDpr?: number;
 }
 
 interface Particle {
@@ -130,7 +137,7 @@ export function startParticleField(
   if (!ctx) return { resize: () => {}, stop: () => {} };
 
   // Particles are soft and forgiving, so a capped ratio saves a lot of fill.
-  const dpr = Math.min(1.5, window.devicePixelRatio || 1);
+  const dpr = Math.min(spec.maxDpr ?? 1.5, window.devicePixelRatio || 1);
   const speed = spec.speed ?? 1;
   const sprites =
     spec.mode === 'shower'
@@ -195,7 +202,8 @@ export function startParticleField(
     const seconds = dt / 1000;
 
     ctx.clearRect(0, 0, width, height);
-    ctx.globalCompositeOperation = spec.mode === 'ambient' ? 'lighter' : 'source-over';
+    ctx.globalCompositeOperation =
+      spec.mode === 'ambient' && spec.additive !== false ? 'lighter' : 'source-over';
 
     for (const p of particles) {
       p.life += seconds;

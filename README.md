@@ -248,6 +248,28 @@ nothing at stake.
 
 ---
 
+## Performance
+
+The shell picks a rendering tier on first load from `hardwareConcurrency`,
+`deviceMemory`, pointer type and screen size, and remembers your choice after
+that. The gauge button in the top bar cycles it:
+
+| Tier | What it costs |
+| --- | --- |
+| **High detail** | Everything: ambient embers, drifting cloud bank, distant lightning, light shafts and runes behind the reels, blurred glass panels |
+| **Balanced** | Fewer embers, no `backdrop-filter`, no stage extras |
+| **Performance** | No ambient scenery at all — just the game |
+
+The reels, the win beat and every feature animation are identical on all three;
+only mood is traded. Touch devices and anything with four cores or less start
+below High, because a demo that stutters on first contact never gets a second
+look.
+
+Add `#fps` to the URL for a frame-rate readout (current fps and the worst frame
+time in the last half second), which is the quickest way to check a real device.
+
+---
+
 ## Controls
 
 | Input | Action |

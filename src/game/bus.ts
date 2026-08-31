@@ -29,6 +29,8 @@ export interface GameEvents {
   'fx:burst': { kind: 'gold' | 'violet' | 'cyan' | 'crimson'; strength?: number };
   'fx:shake': { intensity: number; duration: number };
   'theme:set': { guardian: GuardianId | null };
+  /** Rendering tier — the stage sheds ambient work on the lower ones. */
+  'quality:set': { tier: 'high' | 'balanced' | 'saver' };
 }
 
 type Handler<K extends keyof GameEvents> = (payload: GameEvents[K]) => void;

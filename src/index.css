@@ -271,6 +271,39 @@
   animation: screenShake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
+/* ---------------------------------------------------------------------------
+ * Quality tiers.
+ *
+ * `backdrop-filter` is the single most expensive thing in this shell on mobile
+ * Safari — every blurred surface costs a backdrop snapshot per frame. The lower
+ * tiers trade it for an opaque panel that looks near-identical on a dark scene.
+ * ------------------------------------------------------------------------- */
+
+:root[data-quality='saver'] .glass-panel,
+:root[data-quality='balanced'] .glass-panel {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: linear-gradient(160deg, rgba(26, 36, 64, 0.94) 0%, rgba(11, 15, 33, 0.97) 100%);
+}
+
+/* Full-screen scrims stop blurring too; at these opacities nothing is lost. */
+:root[data-quality='saver'] [class*='backdrop-blur'],
+:root[data-quality='balanced'] [class*='backdrop-blur'] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Ambient scenery that exists purely for mood. */
+:root[data-quality='saver'] [data-ambient] {
+  display: none;
+}
+
+:root[data-quality='saver'] .neon-title,
+:root[data-quality='saver'] .neon-sub {
+  filter: none;
+  text-shadow: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

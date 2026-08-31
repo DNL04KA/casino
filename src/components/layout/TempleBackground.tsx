@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useMemo } from 'react';
 import type { GuardianId } from '@/types';
+import type { QualityTier } from '@/hooks/useQuality';
 import { GUARDIAN_MAP } from '@/data/guardians';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { ParticleCanvas } from '@/components/common/ParticleCanvas';
@@ -9,6 +10,7 @@ interface TempleBackgroundProps {
   /** When a Guardian is active the whole scene shifts to their palette. */
   guardian: GuardianId | null;
   dimmed?: boolean;
+  quality: QualityTier;
 }
 
 const EMBER_COLORS = ['#F8C65B', '#FFE9AE', '#25D9FF', '#8A4DFF'];
@@ -45,7 +47,11 @@ function StormFlash({ accent }: { accent: string }): JSX.Element {
  * its cliff, a waterfall of light, fog and floating embers — built from SVG and
  * CSS gradients so it stays razor sharp at any resolution and costs no assets.
  */
-export function TempleBackground({ guardian, dimmed = false }: TempleBackgroundProps): JSX.Element {
+export function TempleBackground({
+  guardian,
+  dimmed = false,
+  quality,
+}: TempleBackgroundProps): JSX.Element {
   const reduceMotion = useReducedMotion();
 
   const stars = useMemo(
@@ -118,6 +124,7 @@ export function TempleBackground({ guardian, dimmed = false }: TempleBackgroundP
 
       {/* Cloud bank — soft radial gradients, so no blur filter is needed */}
       <div
+        data-ambient
         className="absolute inset-x-0 top-[18%] h-[36%] opacity-60"
         style={{
           animation: reduceMotion ? undefined : 'drift-clouds 64s ease-in-out infinite alternate',
@@ -218,6 +225,7 @@ export function TempleBackground({ guardian, dimmed = false }: TempleBackgroundP
       {[0, 1, 2].map((layer) => (
         <div
           key={layer}
+          data-ambient
           className="absolute inset-x-[-20%] h-[26vh]"
           style={{
             bottom: `${layer * 9}%`,
@@ -229,10 +237,18 @@ export function TempleBackground({ guardian, dimmed = false }: TempleBackgroundP
       ))}
 
       {/* Ambient embers — a single canvas rather than one node per mote */}
-      <ParticleCanvas mode="ambient" colors={EMBER_COLORS} count={54} />
+      {quality !== 'saver' && (
+        <ParticleCanvas
+          mode="ambient"
+          colors={EMBER_COLORS}
+          count={quality === 'high' ? 54 : 24}
+          additive={quality === 'high'}
+          maxDpr={quality === 'high' ? 1.5 : 1}
+        />
+      )}
 
       {/* Distant storm over the valley */}
-      {!reduceMotion && <StormFlash accent={accent} />}
+      {!reduceMotion && quality === 'high' && <StormFlash accent={accent} />}
 
       {/* Vignette */}
       <div

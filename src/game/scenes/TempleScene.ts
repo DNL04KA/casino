@@ -79,6 +79,8 @@ export class TempleScene extends Phaser.Scene {
   private orbs: LiveOrb[] = [];
   private backdrop!: Phaser.GameObjects.Container;
   private backdropTinted: Phaser.GameObjects.Image[] = [];
+  /** Backdrop pieces that only the top tier can afford. */
+  private backdropExtras: Phaser.GameObjects.Image[] = [];
   private reelMask!: Phaser.Display.Masks.GeometryMask;
 
   private emitters: Record<string, Phaser.GameObjects.Particles.ParticleEmitter> = {};
@@ -253,6 +255,7 @@ export class TempleScene extends Phaser.Scene {
         .setBlendMode(Phaser.BlendModes.ADD);
       this.backdrop.add(shaft);
       this.backdropTinted.push(shaft);
+      this.backdropExtras.push(shaft);
       this.tweens.add({
         targets: shaft,
         x: shaft.x + (i === 0 ? 90 : -90),
@@ -277,6 +280,7 @@ export class TempleScene extends Phaser.Scene {
         .setBlendMode(Phaser.BlendModes.ADD);
       this.backdrop.add(rune);
       this.backdropTinted.push(rune);
+      this.backdropExtras.push(rune);
       this.tweens.add({
         targets: rune,
         y: rune.y - 60 - Math.random() * 80,
@@ -294,6 +298,22 @@ export class TempleScene extends Phaser.Scene {
     }
 
     this.applyBackdropTint();
+  }
+
+  /**
+   * Sheds ambient stage work as the tier drops. The reels, the win beat and
+   * every feature animation stay exactly as they are — only mood is traded.
+   */
+  private applyQuality(tier: 'high' | 'balanced' | 'saver'): void {
+    const extras = tier === 'high';
+    this.backdropExtras.forEach((item) => item.setVisible(extras));
+    if (this.dust) {
+      if (tier === 'saver') this.dust.stop();
+      else {
+        this.dust.frequency = tier === 'high' ? 420 : 900;
+        this.dust.start();
+      }
+    }
   }
 
   private applyBackdropTint(): void {
@@ -373,6 +393,7 @@ export class TempleScene extends Phaser.Scene {
       this.listen('orbs:drop', ({ orbs, turbo }) => this.dropOrbs(orbs, turbo)),
       this.listen('orbs:collect', ({ total, turbo }) => this.collectOrbs(total, turbo)),
       this.listen('orbs:clear', () => this.clearOrbs()),
+      this.listen('quality:set', ({ tier }) => this.applyQuality(tier)),
     );
   }
 

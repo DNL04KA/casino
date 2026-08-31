@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TempleBackground } from '@/components/layout/TempleBackground';
 import { GameStage } from '@/components/layout/GameStage';
 import { TopBar } from '@/components/ui/TopBar';
@@ -19,13 +19,32 @@ import { useSlotMachine } from '@/hooks/useSlotMachine';
 import { useSound } from '@/hooks/useSound';
 import { useFullscreen } from '@/hooks/useFullscreen';
 import { useKeyboardShortcuts, type ShortcutMap } from '@/hooks/useKeyboardShortcuts';
+import { QUALITY_LABEL, QUALITY_ORDER, useQuality } from '@/hooks/useQuality';
+import { FpsMeter } from '@/components/ui/FpsMeter';
+import { gameBus } from '@/game/bus';
 import { cn } from '@/utils/cn';
 
 export default function App(): JSX.Element {
   const { state, timings, actions } = useSlotMachine();
   const { enabled: soundOn, toggle: toggleSound } = useSound();
   const fullscreen = useFullscreen();
+  const quality = useQuality();
   const [rendererError, setRendererError] = useState<string | null>(null);
+  // `#fps` in the URL turns on the frame-rate readout — handy for checking a
+  // real device without shipping the badge to everyone.
+  const [showFps] = useState(() => typeof window !== 'undefined' && window.location.hash.includes('fps'));
+
+  // Keep the Phaser stage in step with the tier.
+  useEffect(() => {
+    gameBus.emit('quality:set', { tier: quality.tier });
+  }, [quality.tier]);
+
+  const cycleQuality = useCallback(() => {
+    const next = QUALITY_ORDER[(QUALITY_ORDER.indexOf(quality.tier) + 1) % QUALITY_ORDER.length]!;
+    quality.setTier(next);
+    actions.notify(`Graphics: ${QUALITY_LABEL[next]}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quality.tier]);
 
   const { phase, bonus, relic, modal } = state;
   const showIntro = phase === 'intro';
@@ -83,7 +102,7 @@ export default function App(): JSX.Element {
     // `data-phase` mirrors the demo state machine so the current state is
     // visible in devtools and easy to assert against in end-to-end checks.
     <div className="relative flex h-full w-full flex-col overflow-hidden" data-phase={phase}>
-      <TempleBackground guardian={bonus.guardian} dimmed={backgroundDimmed} />
+      <TempleBackground guardian={bonus.guardian} dimmed={backgroundDimmed} quality={quality.tier} />
 
       <AnimatePresence>
         {showPreloader && <Preloader key="preloader" onComplete={handlePreloadDone} />}
@@ -111,6 +130,8 @@ export default function App(): JSX.Element {
               onToggleFullscreen={() => void fullscreen.toggle()}
               isFullscreen={fullscreen.isFullscreen}
               fullscreenSupported={fullscreen.supported}
+              qualityLabel={QUALITY_LABEL[quality.tier]}
+              onCycleQuality={cycleQuality}
             />
           </div>
 
@@ -187,6 +208,8 @@ export default function App(): JSX.Element {
       <InfoModal open={modal === 'info'} onClose={() => actions.openModal(null)} />
       <PaytableModal open={modal === 'paytable'} onClose={() => actions.openModal(null)} bet={state.bet} />
       <HistoryModal open={modal === 'history'} onClose={() => actions.openModal(null)} history={state.history} />
+
+      {showFps && <FpsMeter />}
 
       {/* Toasts */}
       <AnimatePresence>

@@ -8,6 +8,8 @@ interface ParticleCanvasProps {
   colors: string[];
   count: number;
   speed?: number;
+  additive?: boolean;
+  maxDpr?: number;
   className?: string;
 }
 
@@ -15,16 +17,24 @@ interface ParticleCanvasProps {
  * One canvas, one animation loop, hundreds of motes. Replaces what used to be
  * a DOM node per particle — the single biggest compositor saving in the shell.
  */
-export function ParticleCanvas({ mode, colors, count, speed, className }: ParticleCanvasProps): JSX.Element {
+export function ParticleCanvas({
+  mode,
+  colors,
+  count,
+  speed,
+  additive,
+  maxDpr,
+  className,
+}: ParticleCanvasProps): JSX.Element {
   const ref = useRef<HTMLCanvasElement | null>(null);
   const reduceMotion = useReducedMotion();
-  const key = `${mode}|${colors.join(',')}|${count}|${speed ?? 1}`;
+  const key = `${mode}|${colors.join(',')}|${count}|${speed ?? 1}|${additive}|${maxDpr}`;
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return undefined;
 
-    const field = startParticleField(canvas, { mode, colors, count, speed }, reduceMotion);
+    const field = startParticleField(canvas, { mode, colors, count, speed, additive, maxDpr }, reduceMotion);
     const onResize = () => field.resize();
     window.addEventListener('resize', onResize);
 
