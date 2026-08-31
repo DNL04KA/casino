@@ -1,0 +1,36 @@
+{
+  "name": "neon-temple-guardians-of-fortune",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Neon Temple: Guardians of Fortune \u2014 a non-monetary HTML5 slot-game showcase built for a game-studio portfolio.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "cf:login": "wrangler login",
+    "cf:whoami": "wrangler whoami",
+    "cf:create": "wrangler pages project create neon-temple --production-branch main",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name neon-temple --branch main",
+    "deploy:preview": "npm run build && wrangler pages deploy dist --project-name neon-temple --branch preview"
+  },
+  "dependencies": {
+    "framer-motion": "^11.3.31",
+    "phaser": "^3.80.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.45",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.3",
+    "wrangler": "^4.127.1"
+  }
+}

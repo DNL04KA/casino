@@ -1,0 +1,5 @@
+# Cloudflare Pages configuration for the Neon Temple demo.
+# Static build only — no Workers, no bindings, no server-side code.
+name = "neon-temple"
+compatibility_date = "2026-08-31"
+pages_build_output_dir = "dist"
