@@ -92,6 +92,8 @@ export default function App(): JSX.Element {
   );
 
   const celebrating = phase === 'bigWin';
+  // 0–1: how far into a tumble chain the round is, used to wake the hall.
+  const roundCharge = Math.min(1, (state.progress.collecting ? 6 : state.progress.tumble) / 6);
   const roundLive =
     state.progress.active &&
     (state.progress.running > 0 || state.progress.tumble > 0 || state.progress.collecting);
@@ -102,7 +104,12 @@ export default function App(): JSX.Element {
     // `data-phase` mirrors the demo state machine so the current state is
     // visible in devtools and easy to assert against in end-to-end checks.
     <div className="relative flex h-full w-full flex-col overflow-hidden" data-phase={phase}>
-      <TempleBackground guardian={bonus.guardian} dimmed={backgroundDimmed} quality={quality.tier} />
+      <TempleBackground
+        guardian={bonus.guardian}
+        dimmed={backgroundDimmed}
+        quality={quality.tier}
+        charge={roundCharge}
+      />
 
       <AnimatePresence>
         {showPreloader && <Preloader key="preloader" onComplete={handlePreloadDone} />}
@@ -138,9 +145,7 @@ export default function App(): JSX.Element {
           <GameStage
             guardian={bonus.guardian}
             mounted={inGame || showIntro}
-            excited={celebrating || state.progress.collecting || state.progress.tumble > 1}
             hideTitle={roundLive}
-            energy={state.progress.collecting ? 6 : state.progress.tumble}
             onRendererError={setRendererError}
           >
             <RoundBanner progress={state.progress} />

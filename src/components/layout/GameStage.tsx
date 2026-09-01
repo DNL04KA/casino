@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { PhaserGame } from '@/game/PhaserGame';
-import { RunePillar } from '@/components/layout/RunePillar';
 import type { GuardianId } from '@/types';
 import { GUARDIAN_MAP } from '@/data/guardians';
 import { PAYLINE_COUNT } from '@/data/paylines';
@@ -8,12 +7,8 @@ import { PAYLINE_COUNT } from '@/data/paylines';
 interface GameStageProps {
   guardian: GuardianId | null;
   mounted: boolean;
-  /** Wakes the flanking colossi during a celebration. */
-  excited?: boolean;
   /** The live round read-out replaces the nameplate while a round plays. */
   hideTitle?: boolean;
-  /** Lit rune count on the pillars — the cabinet charges with the chain. */
-  energy?: number;
   onRendererError: (message: string) => void;
   children?: ReactNode;
 }
@@ -39,18 +34,14 @@ function CornerFiligree({ className }: { className: string }): JSX.Element {
 export function GameStage({
   guardian,
   mounted,
-  excited = false,
   hideTitle = false,
-  energy = 0,
   onRendererError,
   children,
 }: GameStageProps): JSX.Element {
   const accent = guardian ? GUARDIAN_MAP[guardian].colors.primary : '#25D9FF';
 
   return (
-    <main className="relative z-20 flex min-h-[34vh] flex-1 items-center justify-center gap-1 px-2 sm:px-4 xl:gap-4">
-      <RunePillar side="left" guardian={guardian} excited={excited} energy={energy} />
-
+    <main className="relative z-20 flex min-h-[34vh] flex-1 items-center justify-center px-3 sm:px-6">
       <div
         className="relative h-auto w-full max-w-[1120px] landscape:h-full landscape:max-h-full landscape:w-auto"
         style={{ aspectRatio: '12 / 7' }}
@@ -145,8 +136,6 @@ export function GameStage({
 
         {children}
       </div>
-
-      <RunePillar side="right" guardian={guardian} excited={excited} energy={energy} />
     </main>
   );
 }
