@@ -4,6 +4,7 @@ import { TempleBackground } from '@/components/layout/TempleBackground';
 import { GameStage } from '@/components/layout/GameStage';
 import { TopBar } from '@/components/ui/TopBar';
 import { BottomBar } from '@/components/ui/BottomBar';
+import { GuestBench } from '@/components/ui/GuestBench';
 import { Preloader } from '@/components/screens/Preloader';
 import { IntroScreen } from '@/components/screens/IntroScreen';
 import { BigWinOverlay } from '@/components/overlays/BigWinOverlay';
@@ -153,6 +154,7 @@ export default function App(): JSX.Element {
           </GameStage>
 
           <div className={chromeClass}>
+            <GuestBench guests={state.guests} />
             <BottomBar
               credits={state.credits}
               bet={state.bet}

@@ -116,7 +116,7 @@ export function GameStage({
             >
               <span className="text-[8px] text-gold/70 sm:text-[10px]">◆</span>
               <span className="whitespace-nowrap font-display text-[10px] uppercase tracking-[0.24em] text-gold-light sm:text-xs sm:tracking-[0.3em]">
-                Neon Temple
+                Yokai Tea House
               </span>
               <span className="text-[8px] text-gold/70 sm:text-[10px]">◆</span>
             </div>

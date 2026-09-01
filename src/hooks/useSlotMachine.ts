@@ -12,6 +12,7 @@ import {
   TIMING,
 } from '@/data/config';
 import { RELIC_NAMES, RELIC_REWARDS } from '@/data/relics';
+import { EMPTY_TABLE, GUEST_ORDER } from '@/data/guests';
 import { GUARDIAN_MAP } from '@/data/guardians';
 import { gameBus } from '@/game/bus';
 import type {
@@ -20,6 +21,7 @@ import type {
   GameState,
   Grid,
   GuardianId,
+  GuestId,
   HistoryEntry,
   LineWin,
   ModalId,
@@ -47,6 +49,8 @@ type Action =
   | { type: 'settle'; win: number; credit: number; wins: LineWin[]; tier: WinTier; entry: HistoryEntry }
   | { type: 'running'; win: number; tier: WinTier; wins: LineWin[] }
   | { type: 'progress'; value: Partial<RoundProgress> }
+  | { type: 'serve'; ids: GuestId[] }
+  | { type: 'clearTable' }
   | { type: 'auto'; value: Partial<AutoSpinState> }
   | { type: 'bonusStart' }
   | { type: 'bonusGuardian'; guardian: GuardianId; spins: number }
@@ -78,6 +82,7 @@ function createInitialState(): GameState {
     bonus: { active: false, guardian: null, choosing: false, spinsTotal: 0, spinsLeft: 0, multiplier: 1, total: 0 },
     relic: { active: false, cards: [], picksLeft: RELIC_PICKS, total: 0, finished: false },
     modal: null,
+    guests: { ...EMPTY_TABLE },
     progress: { active: false, tumble: 0, tumbleTotal: 0, running: 0, orbMultiplier: 0, collecting: false },
     notice: null,
     summary: null,
@@ -127,6 +132,16 @@ function reducer(state: GameState, action: Action): GameState {
       return { ...state, lastWin: action.win, tier: action.tier, wins: action.wins };
     case 'progress':
       return { ...state, progress: { ...state.progress, ...action.value } };
+    case 'serve': {
+      if (action.ids.every((id) => state.guests[id])) return state;
+      const guests = { ...state.guests };
+      action.ids.forEach((id) => {
+        guests[id] = true;
+      });
+      return { ...state, guests };
+    }
+    case 'clearTable':
+      return { ...state, guests: { ...EMPTY_TABLE } };
     case 'auto':
       return { ...state, auto: { ...state.auto, ...action.value } };
     case 'bonusStart':
@@ -160,7 +175,7 @@ function reducer(state: GameState, action: Action): GameState {
         ...state,
         phase: 'summary',
         summary: {
-          title: 'Guardians’ Free Spins Complete',
+          title: 'The Service Is Over',
           subtitle: state.bonus.guardian
             ? `${GUARDIAN_MAP[state.bonus.guardian].title} · ${GUARDIAN_MAP[state.bonus.guardian].feature}`
             : 'Demo bonus round',
@@ -272,6 +287,13 @@ export function useSlotMachine() {
       const bet = current.bet;
       const guardian = current.bonus.guardian;
 
+      // Seated guests shape the board before a single reel turns. Their payout
+      // favours are applied to the result rather than to the spin mode: free
+      // mode also suppresses scatters, so borrowing it would quietly stop the
+      // base game from ever opening the service.
+      const seated = current.guests;
+      const houseFavour = (seated.okami ? 1.1 : 1) * (seated.tanuki ? 1.5 : 1);
+
       const outcome: SpinOutcome = generateSpin({
         bet,
         mode:
@@ -280,8 +302,8 @@ export function useSlotMachine() {
             : { kind: 'base' },
         spinIndex: current.spinCount,
         spinsSinceBonus: spinsSinceBonusRef.current,
-        forceWildExpansion: pendingRef.current.wildExpansion,
-        forceMysteryCluster: pendingRef.current.mysteryCluster,
+        forceWildExpansion: pendingRef.current.wildExpansion || seated.kasa,
+        forceMysteryCluster: pendingRef.current.mysteryCluster || seated.kitsune,
       });
       pendingRef.current.wildExpansion = false;
       pendingRef.current.mysteryCluster = false;
@@ -404,13 +426,28 @@ export function useSlotMachine() {
         gameBus.emit('orbs:clear', {});
       }
 
+      /* ---- the room remembers ------------------------------------------ */
+      const served = GUEST_ORDER.filter(
+        (id) => !seated[id] && outcome.wins.some((win) => win.symbol === id),
+      );
+      if (served.length > 0) {
+        soundEngine.guardianChosen();
+        dispatch({ type: 'serve', ids: served });
+      }
+      const tableAfter = { ...seated };
+      served.forEach((id) => {
+        tableAfter[id] = true;
+      });
+      const houseFull = GUEST_ORDER.every((id) => tableAfter[id]);
+
       /* ---- settle ------------------------------------------------------ */
+      const awarded = Math.round(outcome.totalWin * houseFavour);
       const entry: HistoryEntry = {
         id: uid('spin'),
         index: current.spinCount + 1,
         timestamp: Date.now(),
         bet: mode === 'base' ? bet : 0,
-        win: outcome.totalWin,
+        win: awarded,
         tier: outcome.tier,
         mode: mode === 'free' ? 'free' : 'base',
         topSymbol: outcome.wins[0]?.symbol ?? null,
@@ -433,8 +470,8 @@ export function useSlotMachine() {
       } else {
         dispatch({
           type: 'settle',
-          win: outcome.totalWin,
-          credit: outcome.totalWin,
+          win: awarded,
+          credit: awarded,
           wins: outcome.wins,
           tier: outcome.tier,
           entry,
@@ -458,6 +495,14 @@ export function useSlotMachine() {
       }
 
       /* ---- features -------------------------------------------------- */
+      if (houseFull && mode === 'base') {
+        spinsSinceBonusRef.current = 0;
+        dispatch({ type: 'clearTable' });
+        notify('Every seat is taken — the road comes in.');
+        await startBonus();
+        return 'feature';
+      }
+
       if (outcome.triggersFreeSpins) {
         spinsSinceBonusRef.current = 0;
         await startBonus();

@@ -120,10 +120,10 @@ export function PaytableModal({ open, onClose, bet }: PaytableModalProps): JSX.E
         presentation only — this build has no RTP, no wagering model and no payouts of any kind.
       </div>
 
-      <h3 className="mt-6 font-display text-lg text-gold-light">Rune Orbs</h3>
+      <h3 className="mt-6 font-display text-lg text-gold-light">Coin lanterns</h3>
       <p className="mt-1 text-xs text-slate-400">
-        Orbs land on top of the reels and never join a payline. When a round wins, every orb on screen fuses
-        into a single multiplier applied to the whole round — tumbles included.
+        Coins settle on top of the table and never join a payline. When a round wins, every coin is swept
+        together into a single multiplier applied to the whole round — tumbles included.
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         {ORB_VALUES.map((value) => (
@@ -148,21 +148,21 @@ export function PaytableModal({ open, onClose, bet }: PaytableModalProps): JSX.E
         ))}
       </div>
 
-      <h3 className="mt-6 font-display text-lg text-gold-light">Special symbols</h3>
+      <h3 className="mt-6 font-display text-lg text-gold-light">The three that matter</h3>
       <div className="mt-2 grid gap-3 sm:grid-cols-2">
         {specials.map((symbol) => (
           <SymbolCard key={symbol.id} symbol={symbol} bet={bet} />
         ))}
       </div>
 
-      <h3 className="mt-6 font-display text-lg text-gold-light">Guardians — high pay</h3>
+      <h3 className="mt-6 font-display text-lg text-gold-light">The guests — high pay</h3>
       <div className="mt-2 grid gap-3 sm:grid-cols-2">
         {highs.map((symbol) => (
           <SymbolCard key={symbol.id} symbol={symbol} bet={bet} />
         ))}
       </div>
 
-      <h3 className="mt-6 font-display text-lg text-gold-light">Temple sigils — low pay</h3>
+      <h3 className="mt-6 font-display text-lg text-gold-light">The service — low pay</h3>
       <div className="mt-2 grid gap-3 sm:grid-cols-2">
         {lows.map((symbol) => (
           <SymbolCard key={symbol.id} symbol={symbol} bet={bet} />
@@ -172,7 +172,7 @@ export function PaytableModal({ open, onClose, bet }: PaytableModalProps): JSX.E
       <h3 className="mt-6 font-display text-lg text-gold-light">{PAYLINES.length} demo lines</h3>
       <p className="mt-1 text-xs text-slate-400">
         Lines are evaluated left to right from reel 1. Only the highest combination on each line is counted, and
-        every winning symbol tumbles away so the board can pay again.
+        every winning symbol is cleared away so the table can pay again.
       </p>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5">
         {PAYLINES.map((line) => (

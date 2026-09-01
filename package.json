@@ -1,9 +1,9 @@
 {
-  "name": "neon-temple-guardians-of-fortune",
+  "name": "yokai-tea-house",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Neon Temple: Guardians of Fortune \u2014 a non-monetary HTML5 slot-game showcase built for a game-studio portfolio.",
+  "description": "Yokai Tea House \u2014 a non-monetary HTML5 slot demo built for a game-studio portfolio.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

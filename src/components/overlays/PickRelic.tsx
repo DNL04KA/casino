@@ -20,7 +20,7 @@ const SEAL_PATHS = [
   'M32 4a28 28 0 100 56 28 28 0 000-56z M32 16v32M16 32h32',
 ];
 
-/** "Pick a Relic" mini-game: three sealed relics opened with a 3D flip. */
+/** "Pick a Parcel" mini-game: three sealed relics opened with a 3D flip. */
 export function PickRelic({ visible, relic, onPick, onContinue }: PickRelicProps): JSX.Element {
   const dust = useMemo(
     () =>
@@ -48,7 +48,7 @@ export function PickRelic({ visible, relic, onPick, onContinue }: PickRelicProps
           transition={{ duration: 0.4 }}
           role="dialog"
           aria-modal="true"
-          aria-label="Pick a Relic bonus"
+          aria-label="Pick a Parcel bonus"
         >
           {/* Tension backdrop */}
           <div className="absolute inset-0 bg-night-900/94" />
@@ -80,11 +80,11 @@ export function PickRelic({ visible, relic, onPick, onContinue }: PickRelicProps
 
           <div className="relative w-full max-w-3xl">
             <div className="text-center">
-              <p className="text-[11px] uppercase tracking-[0.45em] text-gold/80">Rare temple event</p>
-              <h2 className="neon-title mt-1 font-display text-3xl uppercase sm:text-5xl">Pick a Relic</h2>
+              <p className="text-[11px] uppercase tracking-[0.45em] text-gold/80">A guest leaves a gift</p>
+              <h2 className="neon-title mt-1 font-display text-3xl uppercase sm:text-5xl">Pick a Parcel</h2>
               <p className="mt-2 text-xs text-slate-400">
                 {relic.finished
-                  ? 'The vault seals itself again.'
+                  ? 'The wrapping cloth is folded away.'
                   : `Choose ${relic.picksLeft} more relic${relic.picksLeft === 1 ? '' : 's'} — ${picksMade}/${RELIC_PICKS} opened.`}
               </p>
             </div>
@@ -104,7 +104,7 @@ export function PickRelic({ visible, relic, onPick, onContinue }: PickRelicProps
                       aria-label={
                         card.revealed && card.reward
                           ? `${card.name} opened: ${card.reward.label}`
-                          : `Open sealed relic ${card.index + 1}`
+                          : `Open wrapped parcel ${card.index + 1}`
                       }
                       className={cn(
                         'card-relic relative block aspect-[4/5] w-full rounded-xl',
@@ -163,12 +163,12 @@ export function PickRelic({ visible, relic, onPick, onContinue }: PickRelicProps
                   animate={{ opacity: 1, y: 0 }}
                   className="glass-flat gold-hairline mx-auto mt-4 flex max-w-xl flex-col items-center gap-1.5 rounded-3xl px-5 py-3 text-center"
                 >
-                  <p className="text-[10px] uppercase tracking-[0.32em] text-cyan-neon/80">Relic hunt complete</p>
+                  <p className="text-[10px] uppercase tracking-[0.32em] text-cyan-neon/80">Parcels opened</p>
                   <p className="stat-value text-3xl font-bold text-gold-light sm:text-4xl">
                     {formatCredits(relic.total)}
                   </p>
                   <p className="text-[11px] text-slate-400">
-                    Total demo points from three relics. Visual reward only — nothing here has cash value.
+                    Total demo points from three parcels. Visual reward only — nothing here has cash value.
                   </p>
                   <button
                     type="button"

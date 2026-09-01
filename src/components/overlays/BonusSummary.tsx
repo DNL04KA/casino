@@ -71,11 +71,11 @@ export function BonusSummary({
             </div>
 
             <div className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400">Total demo bonus win</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400">Total demo takings</p>
               <p className="stat-value mt-1 text-4xl font-bold text-gold-light sm:text-5xl">
                 {formatCredits(counted)}
               </p>
-              <p className="mt-1 text-[11px] text-slate-500">across {spins} demo free spins</p>
+              <p className="mt-1 text-[11px] text-slate-500">across {spins} demo rounds of service</p>
             </div>
 
             <p className="max-w-sm text-[11px] leading-relaxed text-slate-400">

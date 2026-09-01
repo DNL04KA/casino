@@ -74,6 +74,12 @@ export type WinTier = 'none' | 'small' | 'nice' | 'big' | 'mega' | 'epic';
 
 export type GuardianId = 'kasa' | 'kitsune' | 'tanuki';
 
+/** The four spirits who can take a seat in the room. */
+export type GuestId = 'kasa' | 'kitsune' | 'okami' | 'tanuki';
+
+/** Who is currently seated. A served guest keeps its favour until the room clears. */
+export type GuestTable = Record<GuestId, boolean>;
+
 export interface Guardian {
   id: GuardianId;
   name: string;
@@ -258,6 +264,8 @@ export interface GameState {
   bonus: BonusState;
   relic: RelicState;
   modal: ModalId;
+  /** The collection: every spirit served so far stays and lends a favour. */
+  guests: GuestTable;
   progress: RoundProgress;
   notice: string | null;
   summary: { title: string; total: number; subtitle: string } | null;

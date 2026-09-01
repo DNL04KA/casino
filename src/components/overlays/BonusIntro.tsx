@@ -12,7 +12,7 @@ interface BonusIntroProps {
 }
 
 /**
- * Cinematic Temple Gate transition followed by the Guardian picker.
+ * Cinematic The Noren Parts transition followed by the Guardian picker.
  * The gate halves swing apart, the camera pushes in, and the board dissolves
  * into particles before the sanctum is revealed.
  */
@@ -109,11 +109,11 @@ export function BonusIntro({ visible, turbo, onChoose }: BonusIntroProps): JSX.E
                 exit={{ opacity: 0, scale: 1.6 }}
                 transition={{ duration: 0.5 }}
               >
-                <p className="text-xs uppercase tracking-[0.5em] text-cyan-neon/80">Temple Gate</p>
+                <p className="text-xs uppercase tracking-[0.5em] text-cyan-neon/80">The Noren Parts</p>
                 <h2 className="neon-title mt-3 font-display text-4xl uppercase tracking-[0.1em] sm:text-6xl">
-                  The Gate Opens
+                  The Midnight Service
                 </h2>
-                <p className="mt-3 text-sm text-slate-300">Guardians’ Free Spins — demo feature round</p>
+                <p className="mt-3 text-sm text-slate-300">The road has come in for tea — demo feature round</p>
               </motion.div>
             )}
             {stage === 'choose' && (
@@ -125,13 +125,13 @@ export function BonusIntro({ visible, turbo, onChoose }: BonusIntroProps): JSX.E
                 transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               >
                 <div className="text-center">
-                  <p className="text-[11px] uppercase tracking-[0.42em] text-cyan-neon/80">Choose your ally</p>
+                  <p className="text-[11px] uppercase tracking-[0.42em] text-cyan-neon/80">Who sits with you</p>
                   <h2 className="neon-title mt-2 font-display text-3xl uppercase sm:text-5xl">
-                    Guardians’ Free Spins
+                    The Midnight Service
                   </h2>
                   <p className="mx-auto mt-2 max-w-xl text-xs leading-relaxed text-slate-400">
-                    Ten demo free spins. Your choice restyles the round — its colours, captions, particles and
-                    which cosmetic feature plays. All results remain virtual.
+                    Ten demo rounds of service. Whoever you seat restyles the night — its colours, captions,
+                    lantern light and which cosmetic favour plays. All results remain virtual.
                   </p>
                 </div>
 

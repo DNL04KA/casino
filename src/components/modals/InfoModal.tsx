@@ -25,26 +25,26 @@ export function InfoModal({ open, onClose }: InfoModalProps): JSX.Element {
   const specials = SYMBOLS.filter((s) => s.kind === 'wild' || s.kind === 'scatter' || s.kind === 'mystery');
 
   return (
-    <Modal open={open} onClose={onClose} title="Game Info" eyebrow="Neon Temple: Guardians of Fortune">
+    <Modal open={open} onClose={onClose} title="Game Info" eyebrow="Yokai Tea House">
       <div className="rounded-2xl border border-crimson-neon/40 bg-crimson-neon/10 px-4 py-3 text-sm text-[#FFC9D4]">
         <strong className="font-semibold">{DEMO_DISCLAIMER}</strong>
       </div>
 
-      <Section title="The world">
+      <Section title="The house">
         <p>
-          High above a drowned valley, a temple was rebuilt out of stone and circuitry. Its keepers replaced
-          torchlight with cold neon and sealed four guardian spirits into the reels that hold the summit
-          together. Every night the runes wake up, the fog climbs the stairs, and the Temple Gate tests whoever
-          made the climb.
+          A tea house on a road that most travellers only find once. It keeps its lamps lit past midnight,
+          which is when the other customers arrive: an umbrella that never forgave being left in a shed, a fox
+          who pays in leaves, a tanuki whose purse is always at home on the shelf. The house has one rule, and
+          it is older than the house — serve every spirit who sits down.
         </p>
         <p>
-          Neon Temple is a presentation build: a five-reel, three-row board on {PAYLINE_COUNT} fixed demo lines
-          with tumbling wins and Rune Orb multipliers, made to show reel feel, feature staging and celebration
+          Yokai Tea House is a presentation build: a five-reel, three-row board on {PAYLINE_COUNT} fixed demo
+          lines with tumbling wins and coin multipliers, made to show reel feel, feature staging and celebration
           design rather than any commercial maths.
         </p>
       </Section>
 
-      <Section title="Special symbols">
+      <Section title="The three that matter">
         <div className="grid gap-3 sm:grid-cols-3">
           {specials.map((symbol) => (
             <div key={symbol.id} className="glass-flat gold-hairline flex gap-3 rounded-2xl p-3">
@@ -59,33 +59,34 @@ export function InfoModal({ open, onClose }: InfoModalProps): JSX.Element {
         </div>
         <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-slate-300">
           <li>
-            <strong className="text-gold-light">Celestial Wild</strong> substitutes for every symbol except the
-            Temple Gate and the Mystery Rune, and pays on its own line as the top symbol.
+            <strong className="text-gold-light">The Koban</strong> substitutes for every symbol except the
+            noren and the ofuda, and pays on its own line as the top symbol.
           </li>
           <li>
-            <strong className="text-gold-light">Temple Gate</strong> pays from anywhere on the board.{' '}
-            {SCATTERS_FOR_BONUS} or more open the Guardians’ Free Spins.
+            <strong className="text-gold-light">The Noren</strong> pays from anywhere on the board.{' '}
+            {SCATTERS_FOR_BONUS} of them part at once and the whole road comes in for the Midnight Service.
           </li>
           <li>
-            <strong className="text-gold-light">Mystery Rune</strong> stays unreadable until the reels settle, then
-            every rune on screen flips to the same high-pay guardian symbol.
+            <strong className="text-gold-light">The Ofuda</strong> stays sealed until the pot is poured, then
+            every talisman on screen turns over to the same guest.
           </li>
         </ul>
       </Section>
 
-      <Section title="Tumbling reels">
+      <Section title="Tumbling service">
         <p>
-          Every winning combination shatters. The symbols above it fall into the gaps, fresh ones drop in from
-          over the frame, and the board pays again — as many times as it keeps hitting. A round can chain up to
-          eight tumbles, and the counter above the reels tracks the chain and the running demo total.
+          Every winning combination is cleared away like finished cups. What sat above falls into the gaps,
+          fresh service comes in from over the table, and the board pays again — as many times as it keeps
+          hitting. A round can chain up to eight tumbles, and the counter above the table tracks the chain and
+          the running demo total.
         </p>
       </Section>
 
-      <Section title="Rune Orbs">
+      <Section title="Coin lanterns">
         <p>
-          Glowing orbs drop onto the board carrying a demo multiplier. They ignore the paylines entirely and
-          simply wait. If the round ends with any win at all, every orb on screen flies to the centre, the values
-          fuse into one multiplier and the whole round total is multiplied by it. Orbs on a losing round do
+          Coins settle onto the table carrying a demo multiplier. They ignore the paylines entirely and simply
+          wait. If the round ends with any win at all, every coin on the table is swept to the centre, the values
+          fuse into one multiplier and the whole round total is multiplied by it. Coins on a losing round do
           nothing.
         </p>
         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -99,15 +100,16 @@ export function InfoModal({ open, onClose }: InfoModalProps): JSX.Element {
           ))}
         </div>
         <p className="text-xs text-slate-400">
-          Orb values are visual demo values. Several orbs on one round add together before they are applied.
+          Coin values are visual demo values. Several coins on one round add together before they are applied.
         </p>
       </Section>
 
-      <Section title="Guardians’ Free Spins (demo bonus)">
+      <Section title="The Midnight Service (demo bonus)">
         <p>
-          {SCATTERS_FOR_BONUS}+ Temple Gates open a cinematic transition and award {FREE_SPINS_AWARD} demo free
-          spins. Before the round starts you choose one Guardian. The choice is a presentation choice: it changes
-          the palette, the captions, the particle work and which cosmetic feature plays.
+          {SCATTERS_FOR_BONUS}+ noren part at once and the road comes in, awarding {FREE_SPINS_AWARD} demo
+          rounds of service. Before it starts you seat one of the regulars at your table. The choice is a
+          presentation choice: it changes the palette, the captions, the lantern light and which cosmetic favour
+          plays.
         </p>
         <div className="mt-2 grid gap-3 sm:grid-cols-3">
           {GUARDIANS.map((guardian) => (
@@ -126,16 +128,16 @@ export function InfoModal({ open, onClose }: InfoModalProps): JSX.Element {
           ))}
         </div>
         <p className="text-xs text-slate-400">
-          A Free Spins Remaining gauge, the chosen Guardian’s emblem and the virtual multiplier stay on screen for
-          the whole round. It closes on a summary card with the total demo bonus win.
+          A rounds-remaining gauge, the seated regular’s crest and the virtual multiplier stay on screen for the
+          whole service. It closes on a summary card with the total demo takings.
         </p>
       </Section>
 
-      <Section title="Pick a Relic (rare mini-game)">
+      <Section title="Pick a Parcel (rare mini-game)">
         <p>
-          After a rare temple event the vault opens: twelve sealed relics, {RELIC_PICKS} picks, each opened with a
-          3D flip. Rewards are demo multipliers, a wild expansion, extra free spins or a mystery reveal — some of
-          them pre-arm the next demo round.
+          Now and then a guest leaves something behind: twelve wrapped parcels, {RELIC_PICKS} picks, each opened
+          with a 3D flip. Rewards are demo multipliers, an expanding koban, extra rounds of service or a sealed
+          reveal — some of them pre-arm the next demo round.
         </p>
       </Section>
 

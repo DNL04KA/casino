@@ -9,9 +9,9 @@ interface IntroScreenProps {
 }
 
 const HIGHLIGHTS = [
-  { title: 'Tumbling wins', detail: 'Winners shatter, the board refills and pays again' },
-  { title: 'Rune Orb multipliers', detail: 'Orbs fuse into one multiplier on every win' },
-  { title: 'Guardians’ Free Spins', detail: 'Three feature styles and a relic mini-game' },
+  { title: 'Tumbling wins', detail: 'Served cups clear and the table fills again' },
+  { title: 'Coin lanterns', detail: 'Floating coins fuse into one multiplier' },
+  { title: 'The Midnight Service', detail: 'Three regulars, three ways the night goes' },
 ];
 
 /** Title screen — the first thing a reviewer sees. */
@@ -39,7 +39,7 @@ export function IntroScreen({ onEnter, onOpenInfo }: IntroScreenProps): JSX.Elem
           animate={{ opacity: [0.6, 1, 0.6] }}
           transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
         >
-          Awaken the Guardians
+          Serve every spirit
         </motion.p>
 
         <p className="max-w-lg text-sm leading-relaxed text-slate-300">

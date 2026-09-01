@@ -34,10 +34,10 @@ export function GameLogo({ size = 'sm', className }: GameLogoProps): JSX.Element
         <h1
           className={cn(
             'neon-title whitespace-nowrap font-display tracking-wide',
-            large ? 'text-4xl sm:text-6xl' : 'text-base sm:text-lg',
+            large ? 'text-4xl sm:text-6xl' : 'text-sm sm:text-base',
           )}
         >
-          Neon Temple
+          Yokai Tea House
         </h1>
         <p
           className={cn(
@@ -45,7 +45,7 @@ export function GameLogo({ size = 'sm', className }: GameLogoProps): JSX.Element
             large ? 'mt-2 text-sm tracking-[0.42em] sm:text-base' : 'mt-1 text-[9px] tracking-[0.3em] sm:text-[10px]',
           )}
         >
-          Guardians of Fortune
+          Serve Every Spirit
         </p>
       </div>
     </div>
