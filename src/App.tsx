@@ -109,6 +109,7 @@ export default function App(): JSX.Element {
         dimmed={backgroundDimmed}
         quality={quality.tier}
         charge={roundCharge}
+        bonus={bonus.active}
       />
 
       <AnimatePresence>

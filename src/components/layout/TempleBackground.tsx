@@ -4,15 +4,18 @@ import type { QualityTier } from '@/hooks/useQuality';
 import { GUARDIAN_MAP } from '@/data/guardians';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { ParticleCanvas } from '@/components/common/ParticleCanvas';
-import templeHall from '@/assets/temple-hall.jpg';
+import teaHouse from '@/assets/tea-house.jpg';
+import teaHouseBonus from '@/assets/tea-house-bonus.jpg';
 
 interface TempleBackgroundProps {
   /** When a Guardian is active the whole scene shifts to their palette. */
   guardian: GuardianId | null;
   dimmed?: boolean;
   quality: QualityTier;
-  /** 0–1: how charged the round is. Wakes the guardian's orb. */
+  /** 0–1: how charged the round is. Brightens the lanterns. */
   charge?: number;
+  /** The midnight service swaps the room for its crowded version. */
+  bonus?: boolean;
 }
 
 const EMBER_COLORS = ['#F8C65B', '#FFE9AE', '#25D9FF', '#8A4DFF'];
@@ -34,6 +37,7 @@ export function TempleBackground({
   dimmed = false,
   quality,
   charge = 0,
+  bonus = false,
 }: TempleBackgroundProps): JSX.Element {
   const reduceMotion = useReducedMotion();
   const accent = guardian ? GUARDIAN_MAP[guardian].colors.primary : '#25D9FF';
@@ -44,11 +48,19 @@ export function TempleBackground({
       style={{ opacity: dimmed ? 0.4 : 1 }}
       aria-hidden="true"
     >
+      {/* Both rooms stay mounted so the swap is a cross-fade, not a reload */}
       <img
-        src={templeHall}
+        src={teaHouse}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover"
-        style={{ objectPosition: '50% 42%' }}
+        className="absolute inset-0 h-full w-full object-cover transition-opacity duration-1000"
+        style={{ objectPosition: '50% 50%', opacity: bonus ? 0 : 1 }}
+        draggable={false}
+      />
+      <img
+        src={teaHouseBonus}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover transition-opacity duration-1000"
+        style={{ objectPosition: '50% 50%', opacity: bonus ? 1 : 0 }}
         draggable={false}
       />
 
@@ -63,14 +75,14 @@ export function TempleBackground({
         }}
       />
 
-      {/* The guardian's orb brightens as the round charges */}
+      {/* The room's lanterns swell as the round charges */}
       <motion.div
         className="absolute rounded-full"
         style={{
-          left: '24.5%',
-          top: '29%',
-          width: '7vmax',
-          height: '7vmax',
+          left: '50%',
+          top: '26%',
+          width: '46vmax',
+          height: '22vmax',
           transform: 'translate(-50%, -50%)',
           background: `radial-gradient(circle, ${accent}CC 0%, ${accent}44 38%, transparent 70%)`,
           mixBlendMode: 'screen',

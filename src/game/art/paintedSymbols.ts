@@ -1,6 +1,6 @@
 import type { SymbolId } from '@/types';
-import highUrl from '@/assets/symbols-high.png';
-import specialUrl from '@/assets/symbols-special.png';
+import highUrl from '@/assets/symbols-high.jpg';
+import lowUrl from '@/assets/symbols-low.jpg';
 
 /**
  * Painted artwork, delivered as two 2 × 2 sheets.
@@ -11,9 +11,7 @@ import specialUrl from '@/assets/symbols-special.png';
  * guardians and the specials needed illustration, so only they ship as pixels.
  */
 
-export type SheetName = 'high' | 'special';
-
-const CELL = 320;
+export type SheetName = 'high' | 'low';
 
 export interface PaintedCell {
   sheet: SheetName;
@@ -23,21 +21,39 @@ export interface PaintedCell {
   sh: number;
 }
 
-const cell = (sheet: SheetName, col: number, row: number): PaintedCell => ({
+/**
+ * Cells were measured from the delivered sheets rather than assumed: the
+ * generator does not lay symbols out on an even grid, it centres each one
+ * loosely in its own area. A connected-component pass over the keyed artwork
+ * produced these bounds. The padding is deliberate — surrounding backdrop is
+ * keyed away anyway, and a clipped anti-aliased edge is what actually shows.
+ */
+const PAD = 8;
+
+const cell = (sheet: SheetName, sx: number, sy: number, sw: number, sh: number): PaintedCell => ({
   sheet,
-  sx: col * CELL,
-  sy: row * CELL,
-  sw: CELL,
-  sh: CELL,
+  sx: Math.max(0, sx - PAD),
+  sy: Math.max(0, sy - PAD),
+  sw: sw + PAD * 2,
+  sh: sh + PAD * 2,
 });
 
 export const PAINTED_CELLS: Partial<Record<SymbolId, PaintedCell>> = {
-  // Awaiting the tea-house sheets. Every id here falls back to its procedural
-  // glyph until artwork is mapped, so the board is never empty.
+  // Guests
+  kasa: cell('high', 317, 28, 348, 345),
+  kitsune: cell('high', 733, 25, 344, 345),
+  okami: cell('high', 402, 401, 235, 348),
+  tanuki: cell('high', 764, 402, 268, 342),
+  // Service
+  teapot: cell('low', 93, 46, 290, 298),
+  cup: cell('low', 639, 137, 143, 196),
+  lantern: cell('low', 1081, 42, 188, 314),
+  fan: cell('low', 69, 454, 358, 238),
+  incense: cell('low', 598, 443, 224, 278),
+  // The koban rode in on the service sheet
+  wild: cell('low', 1086, 450, 209, 252),
+  // noren and ofuda keep their procedural glyphs for now
 };
-
-/** The fourth special cell is a treasure chest, used by the relic mini-game. */
-export const RELIC_CHEST_CELL: PaintedCell = cell('special', 1, 1);
 
 /* -------------------------------------------------------------------------- */
 /*  Background keying                                                         */
@@ -120,6 +136,13 @@ function keyByFlood(image: HTMLImageElement, isBackdrop: BackdropTest): HTMLCanv
     if (py < h - 1) push(px, py + 1);
   }
 
+  // Backdrop enclosed by artwork — the gap under a teapot handle, the hole in
+  // a fan rivet — is never reachable from the border. Magenta appears nowhere
+  // in the artwork itself, so a second global pass is safe and catches those.
+  for (let p = 0; p < removed.length; p += 1) {
+    if (!removed[p] && isBackdrop(data, p * 4)) removed[p] = 1;
+  }
+
   for (let p = 0; p < removed.length; p += 1) {
     if (removed[p]) data[p * 4 + 3] = 0;
   }
@@ -130,25 +153,15 @@ function keyByFlood(image: HTMLImageElement, isBackdrop: BackdropTest): HTMLCanv
 }
 
 /**
- * The guardian sheet came back with a painted checkerboard standing in for
- * transparency. It uses two greys (~140 and ~182), and the okami's silver
- * robe sits in the same range, which is why this keys by reachability.
+ * Both sheets were generated on flat magenta. They arrive as JPEG, so the key
+ * must tolerate compression ringing around every edge — hence the loose
+ * thresholds, with the erosion pass clearing what survives.
  */
-const isCheckerboard: BackdropTest = (data, i) => {
-  const r = data[i] as number;
-  const g = data[i + 1] as number;
-  const b = data[i + 2] as number;
-  if (Math.max(r, g, b) - Math.min(r, g, b) > 22) return false;
-  const luma = (r + g + b) / 3;
-  return luma > 108 && luma < 205;
-};
-
-/** The specials sheet was generated on flat magenta, which keys cleanly. */
 const isMagenta: BackdropTest = (data, i) => {
   const r = data[i] as number;
   const g = data[i + 1] as number;
   const b = data[i + 2] as number;
-  return r > 150 && b > 150 && g < 120 && r - g > 60 && b - g > 60;
+  return r > 140 && b > 140 && g < 140 && r - g > 45 && b - g > 45;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -186,8 +199,8 @@ function load(name: SheetName, url: string, test: BackdropTest): void {
 }
 
 if (typeof window !== 'undefined') {
-  load('high', highUrl, isCheckerboard);
-  load('special', specialUrl, isMagenta);
+  load('high', highUrl, isMagenta);
+  load('low', lowUrl, isMagenta);
 }
 
 /** The keyed sheet, or null while it is still loading. */
