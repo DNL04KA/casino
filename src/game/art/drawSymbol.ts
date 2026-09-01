@@ -41,7 +41,7 @@ export function drawSymbolTile(
   if (clear) ctx.clearRect(0, 0, size, size);
 
   const painted = PAINTED_CELLS[id];
-  const sheet = painted ? getPaintedSheet() : null;
+  const sheet = painted ? getPaintedSheet(painted.sheet) : null;
 
   if (glyphOnly) {
     if (painted && sheet) {
