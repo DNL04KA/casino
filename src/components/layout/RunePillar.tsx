@@ -1,22 +1,29 @@
+import { useEffect, useRef } from 'react';
 import type { GuardianId } from '@/types';
 import { GUARDIAN_MAP } from '@/data/guardians';
-import { GuardianColossus } from '@/components/layout/GuardianColossus';
+import { drawPillar } from '@/game/art/drawPillar';
 
 interface RunePillarProps {
   side: 'left' | 'right';
   guardian: GuardianId | null;
-  /** Celebrations wake the colossus standing in front of the pillar. */
+  /** Celebrations push the panel's inlay to full brightness. */
   excited?: boolean;
   /**
-   * How many runes are lit. Driven by the tumble chain, so the cabinet itself
-   * charges up as a round keeps paying.
+   * How charged the panel reads, 0–6. Driven by the tumble chain, so the
+   * cabinet itself lights up as a round keeps paying.
    */
   energy?: number;
 }
 
-const RUNES = ['ᛟ', 'ᛉ', 'ᚦ', 'ᛗ', 'ᛊ', 'ᛃ'];
+/** Rosette centres sit at these heights, matching the canvas composition. */
+const STONE_POSITIONS = ['21.5%', '49.5%', '77.5%'];
 
-/** Carved stone column flanking the reels, inlaid with slowly pulsing runes. */
+/**
+ * A carved side panel flanking the reels: engine-turned rosettes, beaded gold
+ * bands and a stone shaft, drawn on canvas with the same sculpting toolkit as
+ * the symbols. The rosette stones are live — they ignite from the bottom up as
+ * the round builds.
+ */
 export function RunePillar({
   side,
   guardian,
@@ -24,94 +31,72 @@ export function RunePillar({
   energy = 0,
 }: RunePillarProps): JSX.Element {
   const accent = guardian ? GUARDIAN_MAP[guardian].colors.primary : '#25D9FF';
-  const flip = side === 'right' ? 'scaleX(-1)' : undefined;
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const wrap = wrapRef.current;
+    if (!canvas || !wrap) return undefined;
+
+    const paint = () => {
+      const rect = wrap.getBoundingClientRect();
+      if (rect.width < 2 || rect.height < 2) return;
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawPillar(ctx, rect.width, rect.height, accent);
+    };
+
+    paint();
+    const observer = new ResizeObserver(paint);
+    observer.observe(wrap);
+    return () => observer.disconnect();
+  }, [accent]);
+
+  // Stones light from the bottom up; a celebration blazes the whole panel.
+  const litStones = excited ? STONE_POSITIONS.length : Math.min(STONE_POSITIONS.length, Math.ceil(energy / 2));
+  const seam = excited ? 1 : Math.min(1, energy / 6);
 
   return (
     <div
-      className="relative hidden h-full w-[124px] shrink-0 lg:block xl:w-[176px] 2xl:w-[212px]"
-      style={{ transform: flip }}
+      ref={wrapRef}
+      className="relative hidden h-full w-[104px] shrink-0 lg:block xl:w-[136px] 2xl:w-[164px]"
+      style={{ transform: side === 'right' ? 'scaleX(-1)' : undefined }}
       aria-hidden="true"
     >
-      <svg
-        viewBox="0 0 100 620"
-        preserveAspectRatio="none"
-        className="absolute inset-y-0 left-1/2 h-full w-[74px] -translate-x-1/2 opacity-90 xl:w-[88px]"
-      >
-        <defs>
-          <linearGradient id={`stone-${side}`} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#0D1526" />
-            <stop offset="30%" stopColor="#243255" />
-            <stop offset="62%" stopColor="#16203A" />
-            <stop offset="100%" stopColor="#080D1A" />
-          </linearGradient>
-          <linearGradient id={`cap-${side}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3A2E6B" />
-            <stop offset="100%" stopColor="#141C33" />
-          </linearGradient>
-        </defs>
+      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
 
-        {/* Capital */}
-        <path d="M4 10 L96 10 L88 44 L12 44 Z" fill={`url(#cap-${side})`} stroke="#F8C65B" strokeOpacity="0.35" />
-        {/* Shaft */}
-        <rect x="14" y="44" width="72" height="520" fill={`url(#stone-${side})`} />
-        {/* Base */}
-        <path d="M8 564 L92 564 L98 610 L2 610 Z" fill={`url(#cap-${side})`} stroke="#F8C65B" strokeOpacity="0.35" />
-
-        {/* Fluting */}
-        {[26, 42, 58, 74].map((x) => (
-          <line key={x} x1={x} y1="52" x2={x} y2="556" stroke="#000" strokeOpacity="0.35" strokeWidth="2" />
-        ))}
-
-        {/* Gold banding */}
-        {[120, 300, 480].map((y) => (
-          <rect key={y} x="10" y={y} width="80" height="10" fill="#1A2340" stroke="#F8C65B" strokeOpacity="0.45" />
-        ))}
-
-        {/* Rune sockets — they ignite from the base up as the chain grows */}
-        {RUNES.map((rune, i) => {
-          const lit = i < energy;
-          const cy = 92 + (RUNES.length - 1 - i) * 86;
-          return (
-            <g key={rune} style={{ color: accent }}>
-              {lit && <circle cx="50" cy={cy} r="26" fill={accent} opacity="0.22" />}
-              <circle
-                cx="50"
-                cy={cy}
-                r="17"
-                fill={lit ? accent : '#060B16'}
-                fillOpacity={lit ? 0.35 : 1}
-                stroke={accent}
-                strokeOpacity={lit ? 1 : 0.5}
-                strokeWidth={lit ? 2.4 : 1.4}
-              />
-              <text
-                x="50"
-                y={cy}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fontSize="20"
-                fill={lit ? '#FFFFFF' : accent}
-                opacity={lit ? 1 : undefined}
-                style={
-                  lit
-                    ? undefined
-                    : { animation: `runePulse ${4 + i * 0.7}s ease-in-out ${i * 0.4}s infinite` }
-                }
-              >
-                {rune}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-
-      {/* Column edge light */}
+      {/* Live inlay: the seams brighten as the round charges */}
       <div
-        className="absolute inset-y-0 right-0 w-[3px]"
-        style={{ background: `linear-gradient(180deg, transparent, ${accent}, transparent)`, opacity: 0.5 }}
+        className="pointer-events-none absolute inset-y-0 left-0 w-full transition-opacity duration-500"
+        style={{
+          opacity: 0.25 + seam * 0.75,
+          background: `linear-gradient(180deg, transparent 6%, ${accent}22 50%, transparent 94%)`,
+        }}
       />
 
-      <GuardianColossus side={side} guardian={guardian} excited={excited} />
+      {/* Rosette stones ignite from the base up */}
+      {STONE_POSITIONS.map((top, i) => {
+        const lit = STONE_POSITIONS.length - i <= litStones;
+        return (
+          <span
+            key={top}
+            className="pointer-events-none absolute left-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full transition-all duration-500"
+            style={{
+              top,
+              background: lit ? '#FFFFFF' : accent,
+              opacity: lit ? 1 : 0.35,
+              boxShadow: lit
+                ? `0 0 10px 3px ${accent}, 0 0 26px 10px ${accent}66`
+                : `0 0 6px 1px ${accent}55`,
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
