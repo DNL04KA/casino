@@ -8,7 +8,7 @@ import {
   RELIC_CARD_COUNT,
   RELIC_PICKS,
   STARTING_CREDITS,
-  TIGER_MULTIPLIER_CAP,
+  PURSE_MULTIPLIER_CAP,
   TIMING,
 } from '@/data/config';
 import { RELIC_NAMES, RELIC_REWARDS } from '@/data/relics';
@@ -340,8 +340,8 @@ export function useSlotMachine() {
 
       /* ---- tumble chain ---------------------------------------------- */
       let multiplier = current.bonus.multiplier;
-      if (mode === 'free' && guardian === 'tiger' && outcome.totalWin > 0) {
-        multiplier = Math.min(TIGER_MULTIPLIER_CAP, multiplier + 1);
+      if (mode === 'free' && guardian === 'tanuki' && outcome.totalWin > 0) {
+        multiplier = Math.min(PURSE_MULTIPLIER_CAP, multiplier + 1);
       }
 
       const orbsByStep = new Map<number, typeof outcome.orbs>();

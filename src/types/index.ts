@@ -7,15 +7,15 @@
  */
 
 export type SymbolId =
-  | 'dragon'
-  | 'mask'
-  | 'empress'
-  | 'tiger'
-  | 'ace'
-  | 'king'
-  | 'queen'
-  | 'jack'
-  | 'ten'
+  | 'kasa'
+  | 'kitsune'
+  | 'okami'
+  | 'tanuki'
+  | 'teapot'
+  | 'cup'
+  | 'lantern'
+  | 'fan'
+  | 'incense'
   | 'wild'
   | 'scatter'
   | 'mystery';
@@ -72,7 +72,7 @@ export interface LineWin {
 
 export type WinTier = 'none' | 'small' | 'nice' | 'big' | 'mega' | 'epic';
 
-export type GuardianId = 'dragon' | 'tiger' | 'moon';
+export type GuardianId = 'kasa' | 'kitsune' | 'tanuki';
 
 export interface Guardian {
   id: GuardianId;

@@ -51,7 +51,7 @@ interface ReelRuntime {
   glow: Phaser.GameObjects.Rectangle | null;
 }
 
-const FILLERS: SymbolId[] = ['dragon', 'mask', 'empress', 'tiger', 'ace', 'king', 'queen', 'jack', 'ten', 'wild'];
+const FILLERS: SymbolId[] = ['kasa', 'kitsune', 'okami', 'tanuki', 'teapot', 'cup', 'lantern', 'fan', 'incense', 'wild'];
 
 const texKey = (id: SymbolId) => `sym-${id}`;
 const blurKey = (id: SymbolId) => `symblur-${id}`;
@@ -266,8 +266,8 @@ export class TempleScene extends Phaser.Scene {
     const maskShape = this.make.graphics({ x: 0, y: 0 });
     maskShape.fillStyle(0xffffff);
     maskShape.fillRoundedRect(ORIGIN_X - 6, ORIGIN_Y - 4, GRID_WIDTH + 12, GRID_HEIGHT + 8, 18);
-    const mask = maskShape.createGeometryMask();
-    this.reelMask = mask;
+    const kitsune = maskShape.createGeometryMask();
+    this.reelMask = kitsune;
 
     for (let index = 0; index < GRID_COLUMNS; index += 1) {
       const symbols: SymbolId[] = Array.from({ length: REEL_SLOTS }, () => this.randomSymbol());
@@ -277,7 +277,7 @@ export class TempleScene extends Phaser.Scene {
         const sprite = this.add
           .image(cellX(index), ORIGIN_Y + (slot - 1) * CELL_HEIGHT + CELL_HEIGHT / 2, texKey(symbols[slot]))
           .setScale(this.tileScale);
-        sprite.setMask(mask);
+        sprite.setMask(kitsune);
         sprites.push(sprite);
       }
 

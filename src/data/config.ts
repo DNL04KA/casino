@@ -15,17 +15,17 @@ export const DEFAULT_BET_INDEX = 2;
 /** Auto-spin is capped hard at ten consecutive demo rounds. */
 export const AUTO_SPIN_MAX = 10;
 
-/** Free spins awarded by the Temple Gate feature. */
+/** Free rounds awarded when the doorway opens. */
 export const FREE_SPINS_AWARD = 10;
 
 /** Relic hunt configuration. */
 export const RELIC_CARD_COUNT = 12;
 export const RELIC_PICKS = 3;
 
-/** How far the Tiger Guardian's demo multiplier can climb during free spins. */
-export const TIGER_MULTIPLIER_CAP = 4;
+/** How far the Tanuki's lucky purse can climb during the midnight service. */
+export const PURSE_MULTIPLIER_CAP = 4;
 
-/** Scatters needed to open the Temple Gate. */
+/** Noren curtains needed before the doorway opens. */
 export const SCATTERS_FOR_BONUS = 3;
 
 /** Win tier thresholds expressed as multiples of the current demo stake. */

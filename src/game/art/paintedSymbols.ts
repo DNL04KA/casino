@@ -32,13 +32,8 @@ const cell = (sheet: SheetName, col: number, row: number): PaintedCell => ({
 });
 
 export const PAINTED_CELLS: Partial<Record<SymbolId, PaintedCell>> = {
-  dragon: cell('high', 0, 0),
-  mask: cell('high', 1, 0),
-  empress: cell('high', 0, 1),
-  tiger: cell('high', 1, 1),
-  wild: cell('special', 0, 0),
-  scatter: cell('special', 1, 0),
-  mystery: cell('special', 0, 1),
+  // Awaiting the tea-house sheets. Every id here falls back to its procedural
+  // glyph until artwork is mapped, so the board is never empty.
 };
 
 /** The fourth special cell is a treasure chest, used by the relic mini-game. */
@@ -136,7 +131,7 @@ function keyByFlood(image: HTMLImageElement, isBackdrop: BackdropTest): HTMLCanv
 
 /**
  * The guardian sheet came back with a painted checkerboard standing in for
- * transparency. It uses two greys (~140 and ~182), and the empress's silver
+ * transparency. It uses two greys (~140 and ~182), and the okami's silver
  * robe sits in the same range, which is why this keys by reachability.
  */
 const isCheckerboard: BackdropTest = (data, i) => {

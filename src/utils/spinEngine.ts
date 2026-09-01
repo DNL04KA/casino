@@ -21,15 +21,15 @@ import { chance, defaultRandom, pick, randomInt, weightedPick, type RandomFn } f
 type WeightMap = Record<SymbolId, number>;
 
 const BASE_WEIGHT: WeightMap = {
-  dragon: 6,
-  mask: 7,
-  empress: 8,
-  tiger: 9,
-  ace: 16,
-  king: 17,
-  queen: 18,
-  jack: 19,
-  ten: 20,
+  kasa: 6,
+  kitsune: 7,
+  okami: 8,
+  tanuki: 9,
+  teapot: 16,
+  cup: 17,
+  lantern: 18,
+  fan: 19,
+  incense: 20,
   wild: 3,
   scatter: 3,
   mystery: 2,
@@ -43,21 +43,21 @@ function makeWeights(overrides: Partial<WeightMap>): WeightMap {
 const REEL_WEIGHTS: WeightMap[] = [
   makeWeights({ wild: 1, scatter: 3, mystery: 1.6 }),
   makeWeights({ wild: 4, scatter: 3, mystery: 2.4 }),
-  makeWeights({ wild: 5, scatter: 3, mystery: 3, dragon: 7 }),
+  makeWeights({ wild: 5, scatter: 3, mystery: 3, kasa: 7 }),
   makeWeights({ wild: 4, scatter: 3, mystery: 2.4 }),
   makeWeights({ wild: 1, scatter: 3, mystery: 1.6 }),
 ];
 
 const PAYABLE: SymbolId[] = [
-  'dragon',
-  'mask',
-  'empress',
-  'tiger',
-  'ace',
-  'king',
-  'queen',
-  'jack',
-  'ten',
+  'kasa',
+  'kitsune',
+  'okami',
+  'tanuki',
+  'teapot',
+  'cup',
+  'lantern',
+  'fan',
+  'incense',
   'wild',
 ];
 
@@ -118,7 +118,7 @@ function rollScript({ mode, spinsSinceBonus, rng }: DirectorInput): DemoScript {
 /* -------------------------------------------------------------------------- */
 
 function emptyGrid(): Grid {
-  return Array.from({ length: GRID_COLUMNS }, () => Array.from({ length: GRID_ROWS }, () => 'ten' as SymbolId));
+  return Array.from({ length: GRID_COLUMNS }, () => Array.from({ length: GRID_ROWS }, () => 'incense' as SymbolId));
 }
 
 interface GridOptions {
@@ -150,7 +150,7 @@ function stripScatters(grid: Grid, fromReel: number, rng: RandomFn): void {
   for (let reel = fromReel; reel < GRID_COLUMNS; reel += 1) {
     for (let row = 0; row < GRID_ROWS; row += 1) {
       if (grid[reel][row] === 'scatter') {
-        grid[reel][row] = pick(['ace', 'king', 'queen', 'jack', 'ten'] as SymbolId[], rng);
+        grid[reel][row] = pick(['teapot', 'cup', 'lantern', 'fan', 'incense'] as SymbolId[], rng);
       }
     }
   }
@@ -186,7 +186,7 @@ function paintLine(grid: Grid, symbol: SymbolId, count: number, rng: RandomFn, w
   // Break the run right after it so the win reads cleanly.
   if (count < GRID_COLUMNS) {
     const breakRow = line.rows[count];
-    const filler = pick(['ten', 'jack', 'queen'] as SymbolId[], rng);
+    const filler = pick(['incense', 'fan', 'lantern'] as SymbolId[], rng);
     if (grid[count][breakRow] === symbol || grid[count][breakRow] === 'wild') {
       grid[count][breakRow] = filler;
     }
@@ -462,7 +462,7 @@ export function generateSpin(request: SpinRequest): SpinOutcome {
 
   const wantsBonus = script === 'bonus' && mode.kind === 'base';
   const mysteryBoost =
-    (guardian === 'moon' ? 3.2 : 1) *
+    (guardian === 'kitsune' ? 3.2 : 1) *
     (script === 'mysteryCluster' || request.forceMysteryCluster ? 2.4 : 1);
 
   const landedGrid = randomGrid({
@@ -473,7 +473,7 @@ export function generateSpin(request: SpinRequest): SpinOutcome {
 
   switch (script) {
     case 'seedWin':
-      paintLine(landedGrid, pick(['ace', 'king', 'queen', 'jack', 'ten'] as SymbolId[], rng), 3, rng, 0.1);
+      paintLine(landedGrid, pick(['teapot', 'cup', 'lantern', 'fan', 'incense'] as SymbolId[], rng), 3, rng, 0.1);
       break;
     case 'bigWin':
       paintLine(landedGrid, pick(HIGH_SYMBOLS, rng), 4, rng, 0.25);
@@ -517,7 +517,7 @@ export function generateSpin(request: SpinRequest): SpinOutcome {
 
   if (mysteryCells.length > 0) {
     mysteryReveal = weightedPick(
-      { dragon: 2, mask: 3, empress: 3.5, tiger: 4 } as Record<SymbolId, number>,
+      { kasa: 2, kitsune: 3, okami: 3.5, tanuki: 4 } as Record<SymbolId, number>,
       rng,
     );
     for (const [reel, row] of mysteryCells) openingGrid[reel][row] = mysteryReveal;
@@ -525,7 +525,7 @@ export function generateSpin(request: SpinRequest): SpinOutcome {
 
   /* ---- expanding wild (Dragon Guardian) --------------------------------- */
   const expandedReels: number[] = [];
-  const expansionActive = guardian === 'dragon' || request.forceWildExpansion === true;
+  const expansionActive = guardian === 'kasa' || request.forceWildExpansion === true;
   if (expansionActive) {
     for (let reel = 0; reel < GRID_COLUMNS; reel += 1) {
       if (openingGrid[reel].includes('wild')) {
@@ -614,7 +614,7 @@ export function createIdleGrid(rng: RandomFn = defaultRandom): Grid {
     if (evaluateLines(grid, 1, 1).length === 0) break;
     const reel = randomInt(GRID_COLUMNS, rng);
     const row = randomInt(GRID_ROWS, rng);
-    grid[reel][row] = pick(['ten', 'jack', 'queen', 'king'] as SymbolId[], rng);
+    grid[reel][row] = pick(['incense', 'fan', 'lantern', 'cup'] as SymbolId[], rng);
   }
   return grid;
 }
