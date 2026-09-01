@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { drawSymbolTile } from '@/game/art/drawSymbol';
+import { isPaintedReady, onPaintedReady } from '@/game/art/paintedSymbols';
 import type { SymbolId } from '@/types';
 import { cn } from '@/utils/cn';
 
@@ -15,6 +16,10 @@ interface SymbolCanvasProps {
  */
 export function SymbolCanvas({ id, size = 96, className }: SymbolCanvasProps): JSX.Element {
   const ref = useRef<HTMLCanvasElement | null>(null);
+  // Redraw once the painted sheet arrives, so cards are never left on the
+  // procedural stand-in.
+  const [painted, setPainted] = useState(isPaintedReady);
+  useEffect(() => onPaintedReady(() => setPainted(true)), []);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -26,7 +31,7 @@ export function SymbolCanvas({ id, size = 96, className }: SymbolCanvasProps): J
     if (!ctx) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     drawSymbolTile(ctx, id, size);
-  }, [id, size]);
+  }, [id, size, painted]);
 
   return (
     <canvas

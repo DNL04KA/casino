@@ -16,6 +16,7 @@ import {
   drawWinHalo,
 } from '@/game/art/drawSymbol';
 import { gameBus, type GameEvents } from '@/game/bus';
+import { PAINTED_CELLS, onPaintedReady } from '@/game/art/paintedSymbols';
 import {
   CELL_HEIGHT,
   CELL_WIDTH,
@@ -125,6 +126,14 @@ export class TempleScene extends Phaser.Scene {
   create(): void {
     this.buildTextures();
     this.buildDeferredTextures();
+    // The painted sheet may still be in flight; repaint those symbols the
+    // moment it lands. Until then the procedural glyphs stand in.
+    this.unsubscribers.push(
+      onPaintedReady(() => {
+        if (!this.alive) return;
+        (Object.keys(PAINTED_CELLS) as SymbolId[]).forEach((id) => this.repaintSymbol(id));
+      }),
+    );
     this.buildBackdrop();
     this.buildReels();
     this.buildLayers();
@@ -175,6 +184,46 @@ export class TempleScene extends Phaser.Scene {
       if (shaft && shaftCtx) {
         drawLightShaft(shaftCtx, 160, 640);
         shaft.refresh();
+      }
+    }
+  }
+
+  /** Redraws one symbol's tile, smear and contour from the current artwork. */
+  private repaintSymbol(id: SymbolId): void {
+    const tile = this.textures.get(texKey(id));
+    if (tile instanceof Phaser.Textures.CanvasTexture) {
+      const ctx = tile.getContext();
+      if (ctx) {
+        drawSymbolTile(ctx, id, TILE_TEXTURE_SIZE);
+        tile.refresh();
+      }
+    }
+
+    const source = this.textures.get(texKey(id))?.getSourceImage();
+    if (!source) return;
+
+    const smear = this.textures.get(blurKey(id));
+    if (smear instanceof Phaser.Textures.CanvasTexture) {
+      const ctx = smear.getContext();
+      if (ctx) {
+        drawMotionSmear(ctx, source as CanvasImageSource, SMEAR_TEXTURE_SIZE);
+        smear.refresh();
+      }
+    }
+
+    const line = this.textures.get(contourKey(id));
+    if (line instanceof Phaser.Textures.CanvasTexture) {
+      const ctx = line.getContext();
+      if (ctx) {
+        const bare = document.createElement('canvas');
+        bare.width = TILE_TEXTURE_SIZE;
+        bare.height = TILE_TEXTURE_SIZE;
+        const bareCtx = bare.getContext('2d');
+        if (bareCtx) {
+          drawSymbolTile(bareCtx, id, TILE_TEXTURE_SIZE, { glyphOnly: true });
+          drawContour(ctx, bare, TILE_TEXTURE_SIZE, 5);
+          line.refresh();
+        }
       }
     }
   }

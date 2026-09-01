@@ -1,6 +1,7 @@
 import { getSymbol } from '@/data/symbols';
 import type { SymbolId } from '@/types';
 import { GLYPHS } from './glyphs';
+import { PAINTED_CELLS, getPaintedSheet } from './paintedSymbols';
 import { hexToRgba, roundedRectPath, starPath, type Ctx2D } from './primitives';
 
 export interface TileOptions {
@@ -39,11 +40,18 @@ export function drawSymbolTile(
   ctx.save();
   if (clear) ctx.clearRect(0, 0, size, size);
 
+  const painted = PAINTED_CELLS[id];
+  const sheet = painted ? getPaintedSheet() : null;
+
   if (glyphOnly) {
-    const bare = (size * 0.96) / 100;
-    ctx.translate(size / 2 - 50 * bare, size / 2 - 50 * bare);
-    ctx.scale(bare, bare);
-    GLYPHS[id](ctx, palette);
+    if (painted && sheet) {
+      drawPaintedCell(ctx, sheet, painted, size, 0.96);
+    } else {
+      const bare = (size * 0.96) / 100;
+      ctx.translate(size / 2 - 50 * bare, size / 2 - 50 * bare);
+      ctx.scale(bare, bare);
+      GLYPHS[id](ctx, palette);
+    }
     ctx.restore();
     return;
   }
@@ -98,19 +106,42 @@ export function drawSymbolTile(
   ctx.fill();
   ctx.restore();
 
-  // The object itself, drawn in its own 100 × 100 design space
-  const scale = (size * 0.96) / 100;
-  ctx.save();
-  ctx.translate(size / 2 - 50 * scale, size / 2 - 50 * scale);
-  ctx.scale(scale, scale);
-  ctx.save();
-  ctx.shadowColor = hexToRgba(palette.glow, 0.4 * intensity);
-  ctx.shadowBlur = 12;
-  GLYPHS[id](ctx, palette);
-  ctx.restore();
-  ctx.restore();
+  // The object itself: painted artwork where we have it, procedural otherwise.
+  if (painted && sheet) {
+    ctx.save();
+    ctx.shadowColor = hexToRgba(palette.glow, 0.45 * intensity);
+    ctx.shadowBlur = 14;
+    drawPaintedCell(ctx, sheet, painted, size, 0.92);
+    ctx.restore();
+  } else {
+    const scale = (size * 0.96) / 100;
+    ctx.save();
+    ctx.translate(size / 2 - 50 * scale, size / 2 - 50 * scale);
+    ctx.scale(scale, scale);
+    ctx.save();
+    ctx.shadowColor = hexToRgba(palette.glow, 0.4 * intensity);
+    ctx.shadowBlur = 12;
+    GLYPHS[id](ctx, palette);
+    ctx.restore();
+    ctx.restore();
+  }
 
   ctx.restore();
+}
+
+/** Blits one sheet cell into the tile, fitted and centred without distortion. */
+function drawPaintedCell(
+  ctx: Ctx2D,
+  sheet: CanvasImageSource,
+  cell: { sx: number; sy: number; sw: number; sh: number },
+  size: number,
+  fill: number,
+): void {
+  const target = size * fill;
+  const ratio = Math.min(target / cell.sw, target / cell.sh);
+  const w = cell.sw * ratio;
+  const h = cell.sh * ratio;
+  ctx.drawImage(sheet, cell.sx, cell.sy, cell.sw, cell.sh, (size - w) / 2, (size - h) / 2, w, h);
 }
 
 /**
