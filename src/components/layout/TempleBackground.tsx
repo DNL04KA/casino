@@ -6,6 +6,7 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { ParticleCanvas } from '@/components/common/ParticleCanvas';
 import teaHouse from '@/assets/tea-house.jpg';
 import teaHouseBonus from '@/assets/tea-house-bonus.jpg';
+import teaHousePortrait from '@/assets/tea-house-portrait.jpg';
 
 interface TempleBackgroundProps {
   /** When a Guardian is active the whole scene shifts to their palette. */
@@ -48,19 +49,36 @@ export function TempleBackground({
       style={{ opacity: dimmed ? 0.4 : 1 }}
       aria-hidden="true"
     >
-      {/* Both rooms stay mounted so the swap is a cross-fade, not a reload */}
+      {/*
+        Both rooms stay mounted so the swap is a cross-fade, not a reload. A
+        phone gets its own plate: the wide one crops so hard in portrait that
+        the hostess and the doorway fall off the sides entirely.
+
+        The slight zoom is framing, not decoration — it lifts the guests clear
+        of the cabinet. Seating the reels *on* the tabletop would need roughly a
+        2.2x crop on this plate, which pushes every guest off screen; that wants
+        a plate whose table fills the middle half of the frame, not its lower
+        third.
+      */}
       <img
         src={teaHouse}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover transition-opacity duration-1000"
-        style={{ objectPosition: '50% 50%', opacity: bonus ? 0 : 1 }}
+        className="absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 portrait:hidden"
+        style={{ transform: 'translateY(-5%) scale(1.12)', opacity: bonus ? 0 : 1 }}
+        draggable={false}
+      />
+      <img
+        src={teaHousePortrait}
+        alt=""
+        className="absolute inset-0 hidden h-full w-full object-cover transition-opacity duration-1000 portrait:block"
+        style={{ objectPosition: '50% 42%', opacity: bonus ? 0 : 1 }}
         draggable={false}
       />
       <img
         src={teaHouseBonus}
         alt=""
         className="absolute inset-0 h-full w-full object-cover transition-opacity duration-1000"
-        style={{ objectPosition: '50% 50%', opacity: bonus ? 1 : 0 }}
+        style={{ transform: 'translateY(-4%) scale(1.1)', opacity: bonus ? 1 : 0 }}
         draggable={false}
       />
 

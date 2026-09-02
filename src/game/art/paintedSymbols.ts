@@ -1,6 +1,7 @@
 import type { SymbolId } from '@/types';
 import highUrl from '@/assets/symbols-high.jpg';
 import lowUrl from '@/assets/symbols-low.jpg';
+import extraUrl from '@/assets/symbols-extra.jpg';
 
 /**
  * Painted artwork, delivered as two 2 × 2 sheets.
@@ -11,7 +12,7 @@ import lowUrl from '@/assets/symbols-low.jpg';
  * guardians and the specials needed illustration, so only they ship as pixels.
  */
 
-export type SheetName = 'high' | 'low';
+export type SheetName = 'high' | 'low' | 'extra';
 
 export interface PaintedCell {
   sheet: SheetName;
@@ -52,8 +53,16 @@ export const PAINTED_CELLS: Partial<Record<SymbolId, PaintedCell>> = {
   incense: cell('low', 598, 443, 224, 278),
   // The koban rode in on the service sheet
   wild: cell('low', 1086, 450, 209, 252),
-  // noren and ofuda keep their procedural glyphs for now
+  // The two that carry the features
+  scatter: cell('extra', 137, 62, 438, 282),
+  mystery: cell('extra', 916, 52, 230, 295),
 };
+
+/** A wrapped furoshiki bundle — the face of every parcel in the mini-game. */
+export const PARCEL_CELL: PaintedCell = cell('extra', 863, 436, 331, 271);
+
+/** A roadside jizo, held for a future feature. */
+export const JIZO_CELL: PaintedCell = cell('extra', 253, 417, 182, 301);
 
 /* -------------------------------------------------------------------------- */
 /*  Background keying                                                         */
@@ -169,7 +178,7 @@ const isMagenta: BackdropTest = (data, i) => {
 /* -------------------------------------------------------------------------- */
 
 const sheets: Partial<Record<SheetName, CanvasImageSource>> = {};
-let pending = 2;
+let pending = 3;
 let ready = false;
 const listeners = new Set<() => void>();
 
@@ -201,6 +210,7 @@ function load(name: SheetName, url: string, test: BackdropTest): void {
 if (typeof window !== 'undefined') {
   load('high', highUrl, isMagenta);
   load('low', lowUrl, isMagenta);
+  load('extra', extraUrl, isMagenta);
 }
 
 /** The keyed sheet, or null while it is still loading. */

@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useMemo } from 'react';
 import { RELIC_PICKS } from '@/data/config';
 import { soundEngine } from '@/audio/SoundEngine';
+import { ParcelCanvas } from '@/components/common/ParcelCanvas';
 import type { RelicState } from '@/types';
 import { formatCredits } from '@/utils/format';
 import { cn } from '@/utils/cn';
@@ -12,13 +13,6 @@ interface PickRelicProps {
   onPick: (index: number) => void;
   onContinue: () => void;
 }
-
-const SEAL_PATHS = [
-  'M32 6 58 20v24L32 58 6 44V20z',
-  'M32 4l10 18 20 4-14 15 3 21-19-10-19 10 3-21L2 26l20-4z',
-  'M12 12h40v40H12z M22 22h20v20H22z',
-  'M32 4a28 28 0 100 56 28 28 0 000-56z M32 16v32M16 32h32',
-];
 
 /** "Pick a Parcel" mini-game: three sealed relics opened with a 3D flip. */
 export function PickRelic({ visible, relic, onPick, onContinue }: PickRelicProps): JSX.Element {
@@ -114,17 +108,9 @@ export function PickRelic({ visible, relic, onPick, onContinue }: PickRelicProps
                     >
                       {/* Sealed face */}
                       <span className="card-face glass-flat gold-hairline absolute inset-0 grid place-items-center rounded-xl">
-                        <svg viewBox="0 0 64 64" className="h-1/2 w-1/2 text-gold/70" aria-hidden="true">
-                          <path
-                            d={SEAL_PATHS[card.index % SEAL_PATHS.length]}
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.4"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
+                        <ParcelCanvas size={56} className="opacity-95" />
                         <span className="absolute bottom-1.5 text-[8px] uppercase tracking-[0.16em] text-slate-500">
-                          Sealed
+                          Wrapped
                         </span>
                       </span>
 
