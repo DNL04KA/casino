@@ -64,7 +64,7 @@ export function TempleBackground({
         src={teaHouse}
         alt=""
         className="absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 portrait:hidden"
-        style={{ transform: 'translateY(-5%) scale(1.12)', opacity: bonus ? 0 : 1 }}
+        style={{ transform: 'translateY(-3%) scale(1.42)', opacity: bonus ? 0 : 1 }}
         draggable={false}
       />
       <img
@@ -78,7 +78,7 @@ export function TempleBackground({
         src={teaHouseBonus}
         alt=""
         className="absolute inset-0 h-full w-full object-cover transition-opacity duration-1000"
-        style={{ transform: 'translateY(-4%) scale(1.1)', opacity: bonus ? 1 : 0 }}
+        style={{ transform: 'translateY(-6%) scale(1.34)', opacity: bonus ? 1 : 0 }}
         draggable={false}
       />
 
